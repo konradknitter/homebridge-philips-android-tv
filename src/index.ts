@@ -6,6 +6,7 @@ import {
     CharacteristicGetCallback,
     CharacteristicSetCallback,
     CharacteristicValue,
+    DynamicPlatformPlugin,
     HAP,
     Logging,
     PlatformAccessory,
@@ -15,12 +16,23 @@ import {
 import request from 'request';
 import wol from 'wake_on_lan';
 
+const PLUGIN_NAME = 'homebridge-philips-android-tv';
+const PLATFORM_NAME = 'PhilipsAndroidTVPlatform';
+
 let hap: HAP;
 
 export = (api: API) => {
     hap = api.hap;
     api.registerAccessory("PhilipsAndroidTV", PhilipsAndroidTvAccessory);
+    api.registerPlatform(PLATFORM_NAME, PhilipsAndroidTvPlatform);
 };
+
+class PhilipsAndroidTvPlatform implements DynamicPlatformPlugin {
+    constructor(log, config, api) {
+    }
+    configureAccessory(accessory: PlatformAccessory) {
+    }
+}
 
 class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
@@ -43,16 +55,18 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.name = config.name;
         this.config = config;
 
-        const uuid = hap.uuid.generate('homebridge:philips-andorid-tv' + this.name);
+        const uuid = hap.uuid.generate(PLUGIN_NAME + this.name);
 
         this.tvAccessory = new api.platformAccessory(this.name, uuid);
         this.tvAccessory.category = hap.Categories.TELEVISION;
+
 
         this.tvService = new hap.Service.Television(this.name, this.name);
         this.tvService.setCharacteristic(hap.Characteristic.ConfiguredName, this.name);
 
         this.tvService.getCharacteristic(hap.Characteristic.ActiveIdentifier)
-            .on(CharacteristicEventTypes.GET, this.getCurrentActivity.bind(this));
+            .on(CharacteristicEventTypes.GET, this.getCurrentActivity.bind(this))
+            .on(CharacteristicEventTypes.SET, this.launchApp.bind(this));
 
         this.tvService.getCharacteristic(hap.Characteristic.Active)
             .on(CharacteristicEventTypes.GET, this.getOn.bind(this))
@@ -86,22 +100,26 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvService.addLinkedService(this.tvSpeaker)
         this.tvService.addLinkedService(this.informationService)
 
-        // for (const appLabel of JSON.parse(String(config.apps))) {
-        //     this.log.debug(String(appLabel))
-        //     const service = new hap.Service.InputSource(String(appLabel), "app");
+        const apps = ["YouTube", "Netflix"]
+        var i = 0
+        for (const appLabel of apps) {
+            const service = new hap.Service.InputSource(this.name + appLabel, appLabel);
 
-        //     service.setCharacteristic(hap.Characteristic.Name, String(appLabel));
-        //     service.setCharacteristic(hap.Characteristic.ConfiguredName, String(appLabel));
-        //     service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-        //     service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.APPLICATION);
-        //     service.setCharacteristic(hap.Characteristic.CurrentVisibilityState, hap.Characteristic.CurrentVisibilityState.SHOWN);
+            service.setCharacteristic(hap.Characteristic.Identifier, i++);
+            service.setCharacteristic(hap.Characteristic.ConfiguredName, appLabel);
+            service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+            service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.APPLICATION);
+            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState, hap.Characteristic.CurrentVisibilityState.SHOWN);
 
-        //     service.getCharacteristic(hap.Characteristic.ConfiguredName)
-        //         .on('set', this.launchApp.bind(this, String(appLabel)));
+            service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                .on('set', (name, callback) => {
+                    callback(null)
+                });
 
-        //     this.inputServices.push(service)
-        //     this.tvService.addLinkedService(service)
-        // }
+            this.inputServices.push(service)
+            this.tvAccessory.addService(service)
+            this.tvService.addLinkedService(service)
+        }
 
         this.fetchCurrentActivity();
         this.fetchCurrentTv();
@@ -110,6 +128,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
 
         log.info("Switch finished initializing!");
+
+        api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
     }
 
     /*
@@ -144,16 +164,40 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         };
     }
     getCurrentActivity(callback: CharacteristicGetCallback) {
-        request(this.buildRequest("activities/tv", "GET", ""), function (this, error, response, body) {
+        request(this.buildRequest("activities/current", "GET", ""), function (this, error, response, body) {
             if (response) {
                 if (response.statusCode === 200) {
-                    var currentTv = JSON.parse(body)
-                    callback(null, currentTv.channel.ccid)
+                    var currentApp = JSON.parse(body)
+                    console.log("getCurrentActivity" + body);
+                    if (currentApp.component.packageName == "NA")
+                    {
+                        request(this.buildRequest("activities/tv", "GET", ""), function (this, error, response, body) {
+                            if (response) {
+                                if (response.statusCode === 200) {
+                                    var currentApp = JSON.parse(body)
+                                    console.log("getCurrentTV" + body);
+                                    callback(null)
+                                }
+                            }
+                        }.bind(this));
+                        return;
+                    }
+                    callback(null)
                     return
                 }
             }
             callback(null, 0)
         }.bind(this));
+        // request(this.buildRequest("activities/tv", "GET", ""), function (this, error, response, body) {
+        //     if (response) {
+        //         if (response.statusCode === 200) {
+        //             var currentTv = JSON.parse(body)
+        //             callback(null, currentTv.channel.ccid)
+        //             return
+        //         }
+        //     }
+        //     callback(null, 0)
+        // }.bind(this));
     }
     getModel(callback: CharacteristicGetCallback) {
         request(this.buildRequest("system", "GET", ""), function (this, error, response, body) {
@@ -185,12 +229,12 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             }
         }.bind(this));
     }
-    launchApp(body: string, value: CharacteristicValue, callback: CharacteristicSetCallback) {
-        console.log(body)
-        request(this.buildRequest("activities/launch", "POST", body), function (this, error, response, body) {
-            this.log.info(JSON.parse(body))
+    launchApp(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+        console.log("Launch activity:" + value)
+        // request(this.buildRequest("activities/launch", "POST", body), function (this, error, response, body) {
+        //     this.log.info(JSON.parse(body))
             callback(null, value)
-        }.bind(this));
+        // }.bind(this));
     }
     fetchPossibleApplications() {
         request(this.buildRequest("applications", "GET", ""), function (this, error, response, body) {
