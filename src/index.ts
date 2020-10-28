@@ -44,6 +44,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     private readonly tvService: Service;
     private readonly tvSpeaker: Service;
     private readonly tvAccessory: PlatformAccessory;
+    private readonly configuredApps = ["YouTube", "Netflix"];
+    private applications: Array<{label: string}> = [];
     private inputServices: Array<Service> = [];
     private volumeCurrent = 0;
     private volumePreMute = 0;
@@ -66,7 +68,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
         this.tvService.getCharacteristic(hap.Characteristic.ActiveIdentifier)
             .on(CharacteristicEventTypes.GET, this.getCurrentActivity.bind(this))
-            .on(CharacteristicEventTypes.SET, this.launchApp.bind(this));
+            .on(CharacteristicEventTypes.SET, this.launchActivity.bind(this));
 
         this.tvService.getCharacteristic(hap.Characteristic.Active)
             .on(CharacteristicEventTypes.GET, this.getOn.bind(this))
@@ -100,9 +102,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvService.addLinkedService(this.tvSpeaker)
         this.tvService.addLinkedService(this.informationService)
 
-        const apps = ["YouTube", "Netflix"]
         var i = 0
-        for (const appLabel of apps) {
+        for (const appLabel of this.configuredApps) {
             const service = new hap.Service.InputSource(this.name + appLabel, appLabel);
 
             service.setCharacteristic(hap.Characteristic.Identifier, i++);
@@ -229,15 +230,27 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             }
         }.bind(this));
     }
-    launchApp(value: CharacteristicValue, callback: CharacteristicSetCallback) {
-        console.log("Launch activity:" + value)
-        // request(this.buildRequest("activities/launch", "POST", body), function (this, error, response, body) {
-        //     this.log.info(JSON.parse(body))
+    launchActivity(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+        console.log("Launch activity:" + this.configuredApps[Number(value)])
+        request(this.buildRequest("applications", "GET", ""), function (this, error, response, body) {
+            if (response) {
+                if (response.statusCode === 200) {
+                    let applications = JSON.parse(body)
+                    for (const application of applications.applications) {
+                        if (application.label == this.configuredApps[Number(value)]) {
+                            request(this.buildRequest("activities/launch", "POST", JSON.stringify(application)), function (this, error, response, body) {
+                                callback(null, value);
+                            }.bind(this));
+                            return
+                        }
+                    }
+                }
+            }
             callback(null, value)
-        // }.bind(this));
+        }.bind(this));
     }
     fetchPossibleApplications() {
-        request(this.buildRequest("applications", "GET", ""), function (this, error, response, body) {
+        request(this.buildRequest("activities", "GET", ""), function (this, error, response, body) {
             if (response) {
                 if (response.statusCode === 200) {
                     let applications = JSON.parse(body)
@@ -245,6 +258,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     for (const application of applications.applications) {
                         log += application.label + ", "
                     }
+                    this.applications = applications.applications
                     this.log.info(log);
                 }
             }
@@ -255,7 +269,6 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             if (body) {
                 let volume = JSON.parse(body)
                 let volumeLevel = (volume.current / (volume.max - volume.min)) * 100
-                this.log.debug("Device " + this.config.name + " volume: " + volumeLevel);
                 this.volumeCurrent = volume.current
                 this.volumeMax = volume.max
                 this.volumeMin = volume.min
@@ -285,7 +298,6 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         return this;
     }
     getMute(callback: CharacteristicGetCallback) {
-        this.log.debug("Fetching status: https://" + this.config.ip + ":1926/6/audio/volume")
         request(this.buildRequest("audio/volume", "GET", ""), function (this, error, response, body) {
             if (body) {
                 let volume = JSON.parse(body)
@@ -323,7 +335,6 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         return this;
     }
     setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
-        this.log.info("Change powerStatus: https://" + this.config.ip + ":1926/6/powerstate to: " + value);
         var request_body;
         if (value === 1) {
             request_body = { "powerstate": "On" };
@@ -344,12 +355,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         return this;
     }
     getOn(callback: CharacteristicGetCallback) {
-        this.log.debug("Fetching status: https://" + this.config.ip + ":1926/6/powerstate");
         request(this.buildRequest("powerstate", "GET", ""), function (this, error, response, body) {
             if (body) {
                 let powerstate = JSON.parse(body)
                 if ("On" === powerstate.powerstate) {
-                    this.log.debug("Device " + this.config.name + " is online.");
                     callback(null, true);
                     return
                 }
