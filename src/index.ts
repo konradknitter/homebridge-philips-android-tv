@@ -169,8 +169,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                     callback(null);
                                 }
                             }
-                            this.log.warn('getCurrentActivity:' + error);
-                        });
+                            this.log.debug('getCurrentActivity:' + error);
+                        }.bind(this));
                         return;
                     }
                     callback(null);
@@ -191,7 +191,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 }
                 callback(null, 'Unknown');
             }
-        });
+        }.bind(this));
     }
 
     fetchCurrentActivity() {
@@ -201,7 +201,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.info(JSON.parse(body));
                 }
             }
-        });
+        }.bind(this));
     }
 
     fetchCurrentTv() {
@@ -211,7 +211,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.info(JSON.parse(body));
                 }
             }
-        });
+        }.bind(this));
     }
 
     fetchChannels() {
@@ -226,9 +226,9 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.info(log);
                 }
             } else {
-                this.log.warn('fetchChannels:' + error);
+                this.log.debug('fetchChannels:' + error);
             }
-        });
+        }.bind(this));
     }
 
     fetchSettings() {
@@ -239,9 +239,9 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.info(settings.node.data.nodes[0].data.nodes[0].data.enums);
                 }
             } else {
-                this.log.warn('fetchChannels:' + error);
+                this.log.debug('fetchChannels:' + error);
             }
-        });
+        }.bind(this));
     }
 
     launchActivity(value: CharacteristicValue, callback: CharacteristicSetCallback) {
@@ -260,10 +260,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     }
                 }
             } else {
-                this.log.warn('launchActivity:' + error);
+                this.log.debug('launchActivity:' + error);
             }
             callback(null, value);
-        });
+        }.bind(this));
     }
 
     fetchPossibleApplications() {
@@ -278,7 +278,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.info(log);
                 }
             }
-        });
+        }.bind(this));
     }
 
     getVolume(callback: CharacteristicGetCallback) {
@@ -295,7 +295,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 this.log.debug('Device ' + this.config.name + ' is offline');
                 callback(null, 0);
             }
-        });
+        }.bind(this));
         return this;
     }
 
@@ -310,10 +310,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 }
                 this.log.debug(response.statusCode);
             } else {
-                this.log.warn('setVolume: ' + error);
+                this.log.debug('setVolume: ' + error);
             }
             callback(null, 0);
-        });
+        }.bind(this));
         return this;
     }
 
@@ -330,7 +330,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 this.log.debug('Device ' + this.config.name + ' is not muted or offline');
                 callback(null, true);
             }
-        });
+        }.bind(this));
         return this;
     }
 
@@ -349,10 +349,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     return;
                 }
             } else {
-                this.log.warn('setMute: ' + error);
+                this.log.debug('setMute: ' + error);
             }
             callback(null, 0);
-        });
+        }.bind(this));
         return this;
     }
 
@@ -374,30 +374,32 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 this.wakeOnLan();
             }
             callback(null, 0);
-        });
+        }.bind(this));
         return this;
     }
 
     getOn(callback: CharacteristicGetCallback) {
         request(this.buildRequest('powerstate', 'GET', ''), function(this, error, response, body) {
-            if (response.statusCode === 200) {
-                if (body) {
-                    const powerstate = JSON.parse(body);
-                    if ('On' === powerstate.powerstate) {
-                        callback(null, true);
-                        return;
+            if (response) {
+                if (response.statusCode === 200) {
+                    if (body) {
+                        const powerstate = JSON.parse(body);
+                        if ('On' === powerstate.powerstate) {
+                            callback(null, true);
+                            return;
+                        }
+                        this.log.debug('Device ' + this.config.name + ' is standby. ' + body);
+                        callback(null, false);
+                    } else {
+                        this.log.debug('Device ' + this.config.name + ' is offline. ' + response.statusCode);
+                        callback(null, false);
                     }
-                    this.log.debug('Device ' + this.config.name + ' is standby. ' + body);
-                    callback(null, false);
-                } else {
-                    this.log.debug('Device ' + this.config.name + ' is offline. ' + response.statusCode);
-                    callback(null, false);
                 }
             } else {
                 this.log.debug('Device ' + this.config.name + ' is offline. ' + error);
                 callback(null, false);   
             }
-        });
+        }.bind(this));
         return this;
     }
 
@@ -416,15 +418,15 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                         callback(null, remoteKey);
                         return;
                     } else {
-                        this.log.warn('sendkey:' + response.statusCode);
+                        this.log.debug('sendkey:' + response.statusCode);
                     }
                 } else {
-                    this.log.warn('sendkey:' + error);
+                    this.log.debug('sendkey:' + error);
                 }
                 callback(null, 0);
-            });
+            }.bind(this));
         } else {
-            this.log.warn('Unsupported key: ' + remoteKey);
+            this.log.debug('Unsupported key: ' + remoteKey);
         }
     }
 
@@ -467,14 +469,14 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                         callback(null, remoteKey);
                         return;
                     } else {
-                        this.log.warn('sendkey:' + response.statusCode);
+                        this.log.debug('sendkey:' + response.statusCode);
                     }
                 }
-                this.log.warn('sendkey:' + error);
+                this.log.debug('sendkey:' + error);
                 callback(null, 0);
-            });
+            }.bind(this));
         } else {
-            this.log.warn('Unsupported key: ' + remoteKey);
+            this.log.debug('Unsupported key: ' + remoteKey);
         }
     }
 
