@@ -1,5 +1,4 @@
 {
-    "private": true,
     "displayName": "Philips Android TV",
     "name": "homebridge-philips-android-tv",
     "version": "0.1.0",
@@ -27,7 +26,6 @@
         "homebridge-plugin"
     ],
     "dependencies": {
-        "node-fetch": "^2.6.1",
         "request": "^2.69.0",
         "wake_on_lan": "latest"
     },

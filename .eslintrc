@@ -21,7 +21,7 @@
     "eqeqeq": "warn",
     "curly": ["warn", "all"],
     "brace-style": ["warn"],
-    "prefer-arrow-callback": ["warn"],
+    "prefer-arrow-callback": ["off"],
     "max-len": ["warn", 140],
     "no-console": ["warn"], // use the provided Homebridge log method instead
     "no-non-null-assertion": ["off"],
