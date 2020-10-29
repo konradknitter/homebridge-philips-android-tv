@@ -178,7 +178,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 }
             }
             callback(null, 0);
-        });
+        }.bind(this));
     }
 
     getModel(callback: CharacteristicGetCallback) {
