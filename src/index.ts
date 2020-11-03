@@ -18,7 +18,7 @@ import request from 'request';
 import wol from 'wake_on_lan';
 
 const PLUGIN_NAME = 'homebridge-philips-android-tv';
-const PLATFORM_NAME = 'philipsandroidplatform'
+const PLATFORM_NAME = 'philipsandroidplatform';
 let hap: HAP;
 
 export = (api: API) => {
@@ -32,8 +32,8 @@ class PhilipsAndroidTVPlatform {
         public readonly log: Logger,
         public readonly config: PlatformConfig,
         public readonly api: API,
-      ) {
-      }
+    ) {
+    }
 }
 
 class PhilipsAndroidTvAccessory implements AccessoryPlugin {
@@ -61,7 +61,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
         const uuid = hap.uuid.generate(PLUGIN_NAME + this.name);
 
-        this.tvAccessory = new api.platformAccessory(this.name, uuid,hap.Categories.TELEVISION);
+        this.tvAccessory = new api.platformAccessory(this.name, uuid, hap.Categories.TELEVISION);
         this.tvAccessory.context.isexternal = true;
 
         this.tvService = new hap.Service.Television(this.name, this.name);
@@ -136,7 +136,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvAccessory.addService(this.tvService);
         this.tvAccessory.addService(this.tvSpeaker);
 
-        new Promise((resolution, rejection) => {
+        new Promise((resolution) => {
             this.fetchPossibleApplications(resolution);
         }).then(() =>{
             this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
@@ -148,7 +148,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     getServices(): Service[] {
-        return []
+        return [];
     }
 
     buildRequest(url: string, method: string, body: string) {
@@ -243,10 +243,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     fetchSettings() {
-        request(this.buildRequest('menuitems/settings/structure', 'GET', ''), function(this, error, response, body) {
+        request(this.buildRequest('menuitems/settings/structure', 'GET', ''), function(this, error, response) {
             if (response) {
                 if (response.statusCode === 200) {
-                    const settings = JSON.parse(body);
+                    // const settings = JSON.parse(body);
                     // this.log.info(settings.node.data.nodes[0].data.nodes[0].data.enums);
                 }
             } else {
@@ -291,14 +291,15 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     let i = 0;
                     for (const application of applications.applications) {
                         if (this.config.apps.includes(application.label)) {
-                            this.configuredApps[i] = application.label
+                            this.configuredApps[i] = application.label;
                             const service = new hap.Service.InputSource(this.name + application.label, application.label);
                 
                             service.setCharacteristic(hap.Characteristic.Identifier, i++);
                             service.setCharacteristic(hap.Characteristic.ConfiguredName, application.label);
                             service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
                             service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.APPLICATION);
-                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState, hap.Characteristic.CurrentVisibilityState.SHOWN);
+                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                hap.Characteristic.CurrentVisibilityState.SHOWN);
                 
                             service.getCharacteristic(hap.Characteristic.ConfiguredName)
                                 .on('set', (name, callback) => {
@@ -309,11 +310,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                             this.tvService.addLinkedService(service);
                         }
                     }
+                } else {
+                    this.log.debug('fetchPossibleApplications: ' + response.statusCode);
                 }
-                else {
-                    this.log.debug("fetchPossibleApplications: " + response.statusCode);
-                }
-                resolution()
+                resolution();
             }
         }.bind(this));
     }
@@ -522,7 +522,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             return;
         }
         this.log.debug('Trying to wake ' + this.config.name + ' on ' + this.config.macAddress);
-        wol.wake(this.config.macAddress, { address: "255.255.255.255" }, function (this, error) {
+        wol.wake(this.config.macAddress, { address: '255.255.255.255' }, function (this, error) {
             if (error) {
                 this.log.warn('Error when sending WOL packets', error);
             }
