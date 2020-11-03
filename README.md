@@ -11,12 +11,11 @@ Working:
 - Turning on TV (including Wake over LAN, WoWOL and Wireless card MAC address have to be setup)
 - Remote Control from iOS, Remote Widget
 - Speaker Control, tested from Homebridge (mute, volume control)
-- Input Control (hardcoded YouTube, and Netflix as PoC)
+- Input Control (Configurable via config)
 
 What's next?
 
-- Ambilight full control support as separate plug-in.
-- Configurable App Input Control
+- Ambilight full control support as separate plug-in. (done under homebridge-philips-tv-ambilight)
 - TV Channel Input Control
 - Auto-discovery of Inputs (Applications and Channels)
     - Need to switch from Accessory to DynamicPlatform
@@ -46,8 +45,15 @@ You can then add username and password key in your homebridge config
         "ip": "IP Address of TV",
         "macAddress": "TV Wireless card MAC Address for Wake on LAN functionality",
         "apiUser": "API user",
-        "apiPass": "API password"
+        "apiPass": "API password",
+        "apps": [
+            "Netflix",
+            "YouTube",
+            "TV"
+        ]
     }
+
+Accessory is registered as "External Accessory", it has to be once added manually in Home app as option without code scan and enter code from Homebridge logs.
 
 # References
 
