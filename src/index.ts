@@ -106,30 +106,9 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvService.addLinkedService(this.tvSpeaker);
         this.tvService.addLinkedService(this.informationService);
 
-        // let i = 0;
-        // for (const appLabel of this.configuredApps) {
-        //     const service = new hap.Service.InputSource(this.name + appLabel, appLabel);
-
-        //     service.setCharacteristic(hap.Characteristic.Identifier, i++);
-        //     service.setCharacteristic(hap.Characteristic.ConfiguredName, appLabel);
-        //     service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-        //     service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.APPLICATION);
-        //     service.setCharacteristic(hap.Characteristic.CurrentVisibilityState, hap.Characteristic.CurrentVisibilityState.SHOWN);
-
-        //     service.getCharacteristic(hap.Characteristic.ConfiguredName)
-        //         .on('set', (name, callback) => {
-        //             callback(null, name);
-        //         });
-
-        //     this.inputServices.push(service);
-        //     this.tvAccessory.addService(service);
-        //     this.tvService.addLinkedService(service);
-        // }
-
         this.fetchCurrentActivity();
         this.fetchCurrentTv();
         this.fetchSettings();
-        this.fetchChannels();
 
         log.info('Switch finished initializing!');
 
@@ -137,7 +116,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvAccessory.addService(this.tvSpeaker);
 
         new Promise((resolution) => {
-            this.fetchPossibleApplications(resolution);
+            this.fetchChannels(resolution);
+            return new Promise((subresolution) => {
+                this.fetchPossibleApplications(subresolution);
+            });
         }).then(() =>{
             this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
         });
@@ -225,7 +207,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         }.bind(this));
     }
 
-    fetchChannels() {
+    fetchChannels(resolution) {
         request(this.buildRequest('channeldb/tv/channelLists/all', 'GET', ''), function(this, error, response, body) {
             if (response) {
                 if (response.statusCode === 200) {
@@ -234,8 +216,33 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     for (const channel of settings.Channel) {
                         log += channel.name + ', ';
                     }
+                    
                     this.log.info(log);
+
+                    let i = Object.keys(this.configuredApps).length;
+                    for (const channel of settings.Channel) {
+                        if (this.config.channels.includes(channel.name)) {
+                            this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
+                            const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
+                
+                            service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                            service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
+                            service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                            service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
+                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                hap.Characteristic.CurrentVisibilityState.SHOWN);
+                
+                            service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                .on('set', (name, callback) => {
+                                    callback(null, name);
+                                });
+                
+                            this.tvAccessory.addService(service);
+                            this.tvService.addLinkedService(service);
+                        }
+                    }
                 }
+                resolution();
             } else {
                 this.log.debug('fetchChannels:' + error);
             }
@@ -256,25 +263,52 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     launchActivity(value: CharacteristicValue, callback: CharacteristicSetCallback) {
-        this.log.debug('Launch activity:' + this.configuredApps[Number(value)]);
-        request(this.buildRequest('applications', 'GET', ''), function(this, error, response, body) {
-            if (response) {
-                if (response.statusCode === 200) {
-                    const applications = JSON.parse(body);
-                    for (const application of applications.applications) {
-                        if (application.label === this.configuredApps[Number(value)]) {
-                            request(this.buildRequest('activities/launch', 'POST', JSON.stringify(application)), function(this) {
-                                callback(null, value);
-                            });
-                            return;
+        this.log.debug('Launch activity:' + JSON.stringify(this.configuredApps[Number(value)]));
+        if (this.configuredApps[Number(value)].type === 'app') {
+            request(this.buildRequest('applications', 'GET', ''), function(this, error, response, body) {
+                if (response) {
+                    if (response.statusCode === 200) {
+                        const applications = JSON.parse(body);
+                        for (const application of applications.applications) {
+                            if (application.label === this.configuredApps[Number(value)].name) {
+                                request(this.buildRequest('activities/launch', 'POST', JSON.stringify(application)), function(this) {
+                                    callback(null, value);
+                                });
+                                return;
+                            }
                         }
                     }
+                } else {
+                    this.log.debug('launchActivity:' + error);
                 }
-            } else {
-                this.log.debug('launchActivity:' + error);
-            }
-            callback(null, value);
-        }.bind(this));
+                callback(null, value);
+            }.bind(this));
+        } else if (this.configuredApps[Number(value)].type === 'channel') {
+            request(this.buildRequest('channeldb/tv/channelLists/all', 'GET', ''), function(this, error, response, body) {
+                const settings = JSON.parse(body);
+                for (const channel of settings.Channel) {
+                    if (channel.name === this.configuredApps[Number(value)].name) {
+                        const channelRequest = {'channel': channel};
+                        request(this.buildRequest('activities/tv', 'GET', ''), function(this, error, response, body) {
+                            if (response) {
+                                if (response.statusCode === 200) {
+                                    this.log.debug('getCurrentTV: ' + body);
+                                    channelRequest['channelList'] = JSON.parse(body).channelList;
+                                    request(this.buildRequest('activities/tv', 'POST', JSON.stringify(channelRequest)),
+                                        function(this, error, response) {
+                                            if (!response) {
+                                                this.log.debug(error);
+                                            }
+                                            callback(null, value);
+                                            return;
+                                        }.bind(this));
+                                }
+                            }
+                        }.bind(this));
+                    }
+                }
+            }.bind(this));
+        }
     }
 
     fetchPossibleApplications(resolution) {
@@ -288,10 +322,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     }
                     this.log.info(log);
 
-                    let i = 0;
+                    let i = Object.keys(this.configuredApps).length;
                     for (const application of applications.applications) {
                         if (this.config.apps.includes(application.label)) {
-                            this.configuredApps[i] = application.label;
+                            this.configuredApps[i] = {'name': application.label, 'type': 'app'};
                             const service = new hap.Service.InputSource(this.name + application.label, application.label);
                 
                             service.setCharacteristic(hap.Characteristic.Identifier, i++);

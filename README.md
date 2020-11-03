@@ -50,6 +50,14 @@ You can then add username and password key in your homebridge config
             "Netflix",
             "YouTube",
             "TV"
+        ],
+        "channels": [
+            "TVP3 Wroclaw",
+            "Polsat",
+            "TVN",
+            "TV4",
+            "TVN 7",
+            "TV6"
         ]
     }
 
