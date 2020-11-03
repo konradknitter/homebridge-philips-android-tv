@@ -12,13 +12,14 @@ Working:
 - Remote Control from iOS, Remote Widget
 - Speaker Control, tested from Homebridge (mute, volume control)
 - Input Control (Configurable via config)
+    - Applications
+    - TV Channels
 
 What's next?
 
+- HDMI
+
 - Ambilight full control support as separate plug-in. (done under homebridge-philips-tv-ambilight)
-- TV Channel Input Control
-- Auto-discovery of Inputs (Applications and Channels)
-    - Need to switch from Accessory to DynamicPlatform
 
 This roadmap should led to 1.0 release.
 
