@@ -52,7 +52,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     private volumePreMute = 0;
     private volumeMin = 0;
     private volumeMax = 0;
-    private lastPlayPause = "Pause";
+    private lastPlayPause = 'Pause';
 
     constructor(log: Logging, config: AccessoryConfig, api: API) {
         this.log = log;
@@ -119,23 +119,23 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvAccessory.addService(this.tvSpeaker);
 
         new Promise((resolution) => {
-            this.log.debug("Trying to WakeOnLan");
-            this.wakeOnLan(resolution)
+            this.log.debug('Trying to WakeOnLan');
+            this.wakeOnLan(resolution);
         }).then(() => {
-            this.log.debug("5 second sleep");
-            return new Promise(resolve => setTimeout(resolve, 5000))
+            this.log.debug('5 second sleep');
+            return new Promise(resolve => setTimeout(resolve, 5000));
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.debug("Fetching channels");
+                this.log.debug('Fetching channels');
                 this.fetchChannels(resolution);
             });
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.debug("Fetching applications");
+                this.log.debug('Fetching applications');
                 this.fetchPossibleApplications(resolution);
             });
         }).then(() =>{
-            this.log.debug("Publishing accessory");
+            this.log.debug('Publishing accessory');
             this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
         });
 
@@ -188,7 +188,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                     const currentChannel = JSON.parse(body);
                                     for (const [app_id, app] of Object.entries(this.configuredApps)) {  
                                         if ((app as any).name === currentChannel.channel.name){
-                                            this.log.debug("Current TV Channel is: " + (app as any).name)
+                                            this.log.debug('Current TV Channel is: ' + (app as any).name);
                                             callback(null, Number(app_id));
                                             return;
                                         }
@@ -199,17 +199,16 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                             }
                         }.bind(this));
                         return;
-                    }
-                    else {
+                    } else {
                         request(this.buildRequest('applications', 'GET', ''), function(this, error, response, body) {
                             if (response) {
                                 if (response.statusCode === 200) {
                                     const applications = JSON.parse(body);
                                     for (const application of applications.applications) {
-                                        if (application.intent.component.packageName == currentApp.component.packageName) {
+                                        if (application.intent.component.packageName === currentApp.component.packageName) {
                                             for (const [app_id, app] of Object.entries(this.configuredApps)) {  
                                                 if ((app as any).name === application.label){
-                                                    this.log.debug("Current APP is: " + (app as any).name)
+                                                    this.log.debug('Current APP is: ' + (app as any).name);
                                                     callback(null, Number(app_id));
                                                     return;
                                                 }
@@ -218,7 +217,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                     }
                                 }
                             }
-                        }.bind(this))
+                        }.bind(this));
                     }
                     callback(null);
                     return;
@@ -582,15 +581,15 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             request_body.key = 'Exit';
         } else if (remoteKey === hap.Characteristic.RemoteKey.PLAY_PAUSE) {
             if (this.config.alternativePlayPause) {
-                if (this.lastPlayPause == "Pause") {
-                    request_body.key = "Play"
-                    this.lastPlayPause = "Play"
+                if (this.lastPlayPause === 'Pause') {
+                    request_body.key = 'Play';
+                    this.lastPlayPause = 'Play';
                 } else {
-                    request_body.key = "Pause"
-                    this.lastPlayPause = "Pause"
+                    request_body.key = 'Pause';
+                    this.lastPlayPause = 'Pause';
                 }
             } else {
-               request_body.key = 'PlayPause';
+                request_body.key = 'PlayPause';
             }
         } else if (remoteKey === hap.Characteristic.RemoteKey.INFORMATION) {
             request_body.key = 'Home';
@@ -616,9 +615,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
     wakeOnLan(callback) {
         if (!this.config.macAddress) {
-            this.log.debug("MAC Address not confgiured, no wakey");
-            if (callback)
-                    callback()
+            this.log.debug('MAC Address not confgiured, no wakey');
+            if (callback) {
+                callback();
+            }
             return;
         }
         this.log.debug('Trying to wake ' + this.config.name + ' on ' + this.config.macAddress);
@@ -626,9 +626,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             if (error) {
                 this.log.warn('Error when sending WOL packets', error);
             } else {
-                this.log.debug("Wake Pakcets sends succesfful");
-                if (callback)
-                    callback()
+                this.log.debug('Wake Pakcets sends succesfful');
+                if (callback) {
+                    callback();
+                }
             }
         }.bind(this));
     }
