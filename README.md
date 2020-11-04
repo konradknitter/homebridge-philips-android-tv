@@ -59,7 +59,8 @@ You can then add username and password key in your homebridge config
             "TV4",
             "TVN 7",
             "TV6"
-        ]
+        ],
+        "alternativePlayPause": true # Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false)
     }
 
 Accessory is registered as "External Accessory", it has to be once added manually in Home app as option without code scan and enter code from Homebridge logs.
