@@ -4,7 +4,7 @@ This plug-in provides support for Homebridge Philips Android TVs.
 
 ## Info
 
-Plug-in tested on 49PUS7101 ( API 6.2.0 ) & 75PUS7354 ( API 6.4.0 )
+Plug-in tested on 50PUS7303 ( API 6.1.0 ), 49PUS7101 ( API 6.2.0 ), 75PUS7354 & 65OLED804/12 ( API 6.4.0 )
 
 Working:
 
