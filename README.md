@@ -1,4 +1,4 @@
-# Homebridge Philips Andorid TV
+# Homebridge Philips Android TV
 
 This plug-in provides support for Homebridge Philips Android TVs.
 
@@ -30,7 +30,7 @@ Scf-Fi:
 
 Android TV 2016 models Philips use an authenticated HTTPS JointSpace API version 6.
 Every control- or status-call needs digest authentification which contains of a pre generated username and password.
-You have to do this once for your TV, to use the python script philips_android_tv.
+You have to do this once for your TV, to use the python script [philips_android_tv](https://github.com/suborb/philips_android_tv).
 
 Here is an example pairing call for philips_android_tv :
 
@@ -60,8 +60,15 @@ You can then add username and password key in your homebridge config
             "TVN 7",
             "TV6"
         ],
-        "alternativePlayPause": true # Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false)
+        "alternativePlayPause": true
     }
+
+
+| Option                 | Description                                                                                                   | Default |  Example  |
+|------------------------|---------------------------------------------------------------------------------------------------------------|---------|-----------|
+| alternativePlayPause   | Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false) | false   | true      |
+
+[comment]: <> (Maybe adding more options in table?)
 
 Accessory is registered as "External Accessory", it has to be once added manually in Home app as option without code scan and enter code from Homebridge logs.
 
