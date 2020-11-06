@@ -511,7 +511,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                             callback(null, true);
                             return;
                         }
-                        this.log.debug('Device ' + this.config.name + ' is standby. ' + body);
+                        this.log.debug('Device ' + this.config.name + ' is in standby mode. ' + body);
                         callback(null, false);
                     } else {
                         this.log.debug('Device ' + this.config.name + ' is offline. ' + response.statusCode);
@@ -615,18 +615,18 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
     wakeOnLan(callback) {
         if (!this.config.macAddress) {
-            this.log.debug('MAC Address not confgiured, no wakey');
+            this.log.debug('MAC address not configured, no wakey');
             if (callback) {
                 callback();
             }
             return;
         }
-        this.log.debug('Trying to wake ' + this.config.name + ' on ' + this.config.macAddress);
+        this.log.debug('Try to wake up ' + this.config.name + ' on ' + this.config.macAddress);
         wol.wake(this.config.macAddress, { address: '255.255.255.255' }, function (this, error) {
             if (error) {
                 this.log.warn('Error when sending WOL packets', error);
             } else {
-                this.log.debug('Wake Pakcets sends succesfful');
+                this.log.debug('WOL packets sends successful');
                 if (callback) {
                     callback();
                 }
