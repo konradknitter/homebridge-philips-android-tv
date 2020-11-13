@@ -7,10 +7,8 @@ import {
     CharacteristicSetCallback,
     CharacteristicValue,
     HAP,
-    Logger,
     Logging,
     PlatformAccessory,
-    PlatformConfig,
     Service,
 } from 'homebridge';
 
@@ -18,23 +16,12 @@ import request from 'request';
 import wol from 'wake_on_lan';
 
 const PLUGIN_NAME = 'homebridge-philips-android-tv';
-const PLATFORM_NAME = 'philipsandroidplatform';
 let hap: HAP;
 
 export = (api: API) => {
     hap = api.hap;
     api.registerAccessory('PhilipsAndroidTV', PhilipsAndroidTvAccessory);
-    api.registerPlatform(PLATFORM_NAME, PhilipsAndroidTVPlatform);
 };
-
-class PhilipsAndroidTVPlatform {
-    constructor(
-        public readonly log: Logger,
-        public readonly config: PlatformConfig,
-        public readonly api: API,
-    ) {
-    }
-}
 
 class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
@@ -46,12 +33,12 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     private readonly tvSpeaker: Service;
     private readonly tvAccessory: PlatformAccessory;
     private readonly api: API;
-    // private readonly configuredApps = ['YouTube', 'Netflix'];
     private configuredApps = {};
     private volumeCurrent = 0;
     private volumePreMute = 0;
     private volumeMin = 0;
     private volumeMax = 0;
+    private unknownStructure = false;
     private lastPlayPause = 'Pause';
 
     constructor(log: Logging, config: AccessoryConfig, api: API) {
@@ -119,35 +106,42 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         this.tvAccessory.addService(this.tvSpeaker);
 
         new Promise((resolution) => {
-            this.log.debug('Trying to WakeOnLan');
+            this.log.info('Trying to WakeOnLan');
             this.wakeOnLan(resolution);
         }).then(() => {
-            this.log.debug('5 second sleep');
+            this.log.info('5 second sleep');
             return new Promise(resolve => setTimeout(resolve, 5000));
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.debug('Fetching channels');
+                this.log.info('Fetching channels');
                 this.fetchChannels(resolution);
             });
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.debug('Fetching applications');
+                this.log.info('Fetching applications');
                 this.fetchPossibleApplications(resolution);
             });
         }).then(() =>{
-            this.log.debug('Publishing accessory');
+            this.log.info('Publishing accessory');
             this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
         });
 
         setInterval(() => {
             this.getOn((error, state) => {
-                this.tvService.getCharacteristic(hap.Characteristic.Active).updateValue(state as number);
+                if (error) {
+                    this.log.warn('recurentTask:' + error);
+                } else {
+                    this.tvService.getCharacteristic(hap.Characteristic.Active).updateValue(state as number);
+                }
             });
 
             this.getCurrentActivity((error, state) => {
-                this.tvService.getCharacteristic(hap.Characteristic.ActiveIdentifier).updateValue(state as number);
+                if (error) {
+                    this.log.warn('recurentTask:' + error);
+                } else {
+                    this.tvService.getCharacteristic(hap.Characteristic.ActiveIdentifier).updateValue(state as number);
+                }
             });
-
         }, 10000);
     }
 
@@ -181,22 +175,30 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             if (response) {
                 if (response.statusCode === 200) {
                     const currentApp = JSON.parse(body);
-                    if (currentApp.component.packageName === 'NA' || currentApp.component.packageName === 'org.droidtv.zapster') {
+                    if (currentApp.component.packageName === 'NA' || currentApp.component.packageName === 'org.droidtv.zapster' || currentApp.component.packageName === 'org.droidtv.playtv') {
                         request(this.buildRequest('activities/tv', 'GET', ''), function(this, error, response, body) {
                             if (response) {
                                 if (response.statusCode === 200) {
                                     const currentChannel = JSON.parse(body);
                                     for (const [app_id, app] of Object.entries(this.configuredApps)) {  
-                                        if ((app as any).name === currentChannel.channel.name){
-                                            this.log.debug('Current TV Channel is: ' + (app as any).name);
-                                            callback(null, Number(app_id));
-                                            return;
+                                        if (currentChannel && Object.prototype.hasOwnProperty.call(currentChannel, 'channel')
+                                            && Object.prototype.hasOwnProperty.call(currentChannel.channel, 'name')) {
+                                            if ((app as any).name === currentChannel.channel.name){
+                                                this.log.debug('Current TV Channel is: ' + (app as any).name);
+                                                callback(null, Number(app_id));
+                                                return;
+                                            }
+                                        } else {
+                                            if (!this.unknownStructure) {
+                                                this.log.warn('getCurrentActivity: unknown activities/tv structure: ' + body);
+                                                this.unknownStructure = true;
+                                            }
                                         }
                                     }
-                                    this.log.debug('getCurrentTV: ' + body);
-                                    callback(null);
                                 }
                             }
+                            this.log.debug('getCurrentActivity: unknown application:' + body);
+                            callback(null);
                         }.bind(this));
                         return;
                     } else {
@@ -215,15 +217,24 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                             }
                                         }
                                     }
+                                } else {
+                                    this.log.warn('getCurrentActivity: statusCode:' + response.statusCode);
                                 }
+                            } else {
+                                this.log.warn('getCurrentActivity: error:' + error);
                             }
+                            this.log.warn('getCurrentActivity: unknown application:' + JSON.stringify(currentApp));
+                            callback(null);
                         }.bind(this));
                     }
-                    callback(null);
                     return;
+                } else {
+                    this.log.warn('getCurrentActivity: statusCode:' + response.statusCode);
                 }
+            } else {
+                this.log.warn('getCurrentActivity: error: ' + error);
+                callback(null, 0);
             }
-            callback(null, 0);
         }.bind(this));
     }
 
