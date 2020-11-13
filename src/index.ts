@@ -175,7 +175,9 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             if (response) {
                 if (response.statusCode === 200) {
                     const currentApp = JSON.parse(body);
-                    if (currentApp.component.packageName === 'NA' || currentApp.component.packageName === 'org.droidtv.zapster' || currentApp.component.packageName === 'org.droidtv.playtv') {
+                    if (currentApp.component.packageName === 'NA'
+                        || currentApp.component.packageName === 'org.droidtv.zapster'
+                        || currentApp.component.packageName === 'org.droidtv.playtv') {
                         request(this.buildRequest('activities/tv', 'GET', ''), function(this, error, response, body) {
                             if (response) {
                                 if (response.statusCode === 200) {
