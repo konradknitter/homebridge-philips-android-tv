@@ -287,24 +287,26 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
                     let i = Object.keys(this.configuredApps).length;
                     for (const channel of settings.Channel) {
-                        if (this.config.channels.includes(channel.name)) {
-                            this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
-                            const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
-                
-                            service.setCharacteristic(hap.Characteristic.Identifier, i++);
-                            service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
-                            service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-                            service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
-                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
-                                hap.Characteristic.CurrentVisibilityState.SHOWN);
-                
-                            service.getCharacteristic(hap.Characteristic.ConfiguredName)
-                                .on('set', (name, callback) => {
-                                    callback(null, name);
-                                });
-                
-                            this.tvAccessory.addService(service);
-                            this.tvService.addLinkedService(service);
+                        if (Object.keys(this.config).includes('channels')) {
+                            if (this.config.channels.includes(channel.name)) {
+                                this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
+                                const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
+                    
+                                service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                                service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
+                                service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                                service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
+                                service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                    hap.Characteristic.CurrentVisibilityState.SHOWN);
+                    
+                                service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                    .on('set', (name, callback) => {
+                                        callback(null, name);
+                                    });
+                    
+                                this.tvAccessory.addService(service);
+                                this.tvService.addLinkedService(service);
+                            }
                         }
                     }
                 }
@@ -389,24 +391,27 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
                     let i = Object.keys(this.configuredApps).length;
                     for (const application of applications.applications) {
-                        if (this.config.apps.includes(application.label)) {
-                            this.configuredApps[i] = {'name': application.label, 'type': 'app'};
-                            const service = new hap.Service.InputSource(this.name + application.label, application.label);
-                
-                            service.setCharacteristic(hap.Characteristic.Identifier, i++);
-                            service.setCharacteristic(hap.Characteristic.ConfiguredName, application.label);
-                            service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-                            service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.APPLICATION);
-                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
-                                hap.Characteristic.CurrentVisibilityState.SHOWN);
-                
-                            service.getCharacteristic(hap.Characteristic.ConfiguredName)
-                                .on('set', (name, callback) => {
-                                    callback(null, name);
-                                });
-                
-                            this.tvAccessory.addService(service);
-                            this.tvService.addLinkedService(service);
+                        if (Object.keys(this.config).includes('apps')) {
+                            if (this.config.apps.includes(application.label)) {
+                                this.configuredApps[i] = {'name': application.label, 'type': 'app'};
+                                const service = new hap.Service.InputSource(this.name + application.label, application.label);
+                    
+                                service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                                service.setCharacteristic(hap.Characteristic.ConfiguredName, application.label);
+                                service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                                service.setCharacteristic(hap.Characteristic.InputSourceType,
+                                    hap.Characteristic.InputSourceType.APPLICATION);
+                                service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                    hap.Characteristic.CurrentVisibilityState.SHOWN);
+                    
+                                service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                    .on('set', (name, callback) => {
+                                        callback(null, name);
+                                    });
+                    
+                                this.tvAccessory.addService(service);
+                                this.tvService.addLinkedService(service);
+                            }
                         }
                     }
                 } else {
