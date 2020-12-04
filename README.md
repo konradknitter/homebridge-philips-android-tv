@@ -67,6 +67,8 @@ You can then add username and password key in your homebridge config
 | Option                 | Description                                                                                                   | Default |  Example  |
 |------------------------|---------------------------------------------------------------------------------------------------------------|---------|-----------|
 | alternativePlayPause   | Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false) | false   | true      |
+| dedicatedMuteSwitch     | If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes. | false   | true      |
+| dedicatedVolumeLightbulb   | If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes. | false   | true      |
 
 [comment]: <> (Maybe adding more options in table?)
 

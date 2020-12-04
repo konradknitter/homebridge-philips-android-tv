@@ -32,6 +32,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     private readonly tvService: Service;
     private readonly tvSpeaker: Service;
     private readonly tvAccessory: PlatformAccessory;
+    private readonly muteSwitch?: Service;
+    private readonly volumeLightbulb?: Service;
     private readonly api: API;
     private configuredApps = {};
     private volumeCurrent = 0;
@@ -104,6 +106,27 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
         this.tvAccessory.addService(this.tvService);
         this.tvAccessory.addService(this.tvSpeaker);
+
+        if (this.config.dedicatedMuteSwitch) {
+            this.muteSwitch = new hap.Service.Switch(this.name + ' Mute Switch');
+            this.muteSwitch.getCharacteristic(hap.Characteristic.On)
+                .on('get', this.getMute.bind(this))
+                .on('set', this.setMute.bind(this));
+            this.tvAccessory.addService(this.muteSwitch);
+        }
+
+        if (this.config.dedicatedVolumeLightbulb) {
+
+            this.volumeLightbulb = new hap.Service.Lightbulb(this.name + ' Volume Lightbulb', this.name + ' Volume Lightbulb');
+            this.volumeLightbulb.getCharacteristic(hap.Characteristic.On)
+                .on('get', this.getMute.bind(this))
+                .on('set', this.setMute.bind(this));
+
+            this.volumeLightbulb.getCharacteristic(api.hap.Characteristic.Brightness)
+                .on('get', this.getVolume.bind(this))
+                .on('set', this.setVolume.bind(this));
+            this.tvAccessory.addService(this.volumeLightbulb);
+        }
 
         new Promise((resolution) => {
             this.log.info('Trying to WakeOnLan');
