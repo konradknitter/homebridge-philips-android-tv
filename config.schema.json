@@ -41,19 +41,29 @@
                 "title": "Alternative Play Pause.",
                 "description": "If enabled plugin will send store state of last send command and send Play command or Pause command alternating. If disabled, plugin sends PlayPause command. Required for compatibility on selected Philips TV.",
                 "type": "boolean",
-                "default": "false",
-                "required": false
+                "default": "false"
             },
             "dedicatedMuteSwitch": {
                 "title": "Dedicated Mute Switch",
                 "description": "If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes.",
                 "type": "boolean",
-                "default": "false",
-                "required": false
+                "default": "false"
             },
             "dedicatedVolumeLightbulb": {
-                "title": "Dedicated Mute Switch",
+                "title": "Dedicated Volume Lightbulb",
                 "description": "If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes.",
+                "type": "boolean",
+                "default": "false"
+            },
+            "printConfiguredApps": {
+                "title": "Print ConfiguredApps",
+                "description": "Configured Apps is list of information that plugin fetches from TV during initial setup to be able to use them as inputs. Some users reports issues related to connectivity during homebridge startup. Adding this array to config.json can stabilize situation",
+                "type": "boolean",
+                "default": "false"
+            },
+            "registerAsDefaultAccessory": {
+                "title": "Register as Default Accessory",
+                "description": "Experimental. By default this plugin registers as External Accessory, as thats only way to represent TV via homebrdige in iOS14. Enabling this function will expose all services as normal services. Might be useful for debugging, or problems with adding external accesory to HomeKit.",
                 "type": "boolean",
                 "default": "false",
                 "required": false

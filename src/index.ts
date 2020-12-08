@@ -112,40 +112,42 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             this.muteSwitch.getCharacteristic(hap.Characteristic.On)
                 .on('get', this.getMute.bind(this))
                 .on('set', this.setMute.bind(this));
-            this.tvAccessory.addService(this.muteSwitch);
         }
 
         if (this.config.dedicatedVolumeLightbulb) {
 
-            this.volumeLightbulb = new hap.Service.Lightbulb(this.name + ' Volume Lightbulb', this.name + ' Volume Lightbulb');
-            this.volumeLightbulb.getCharacteristic(hap.Characteristic.On)
-                .on('get', this.getMute.bind(this))
-                .on('set', this.setMute.bind(this));
+            this.volumeLightbulb = new hap.Service.Lightbulb(this.name + ' Volume Bulb', this.name + ' Volume Lightbulb');
 
-            this.volumeLightbulb.getCharacteristic(api.hap.Characteristic.Brightness)
+            this.volumeLightbulb.getCharacteristic(hap.Characteristic.Brightness)
                 .on('get', this.getVolume.bind(this))
                 .on('set', this.setVolume.bind(this));
-            this.tvAccessory.addService(this.volumeLightbulb);
         }
 
         new Promise((resolution) => {
-            this.log.info('Trying to WakeOnLan');
+            this.log.info('Startup Phase #1 - Trying to WakeOnLan TV');
             this.wakeOnLan(resolution);
         }).then(() => {
-            this.log.info('5 second sleep');
+            this.log.info('Startup Phase #2 - Waiting 5 second');
             return new Promise(resolve => setTimeout(resolve, 5000));
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.info('Fetching channels');
+                this.log.info('Startup Phase #3 - Fetching information about channels from TV');
                 this.fetchChannels(resolution);
             });
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.info('Fetching applications');
+                this.log.info('Startup Phase #4 - Fetching information about application from TV');
                 this.fetchPossibleApplications(resolution);
             });
         }).then(() =>{
-            this.log.info('Publishing accessory');
+            if (Object.keys(this.configuredApps).length == 0) {
+                this.log.warn('No applications/channel inputs had been configured. If that was not inteneded, make sure that TV is available during homebridge startup.');
+            } else {
+                if (this.config.printConfiguredApps) {
+                    this.log.info(JSON.stringify(this.configuredApps));
+                }
+            }
+            this.log.info('Startup Completed - Publishing External HomeKit Accessory. Accessory will not be automaticly added to Home - it has to be manually added in Home app.');
             this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
         });
 
@@ -173,7 +175,19 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     getServices(): Service[] {
-        return [];
+        const services : Service[] = [];
+        if (this.config.dedicatedVolumeLightbulb) {
+            services.push(this.volumeLightbulb!);
+        }
+        if (this.config.dedicatedMuteSwitch) {
+            services.push(this.muteSwitch!);
+        }
+        if (this.config.registerAsDefaultAccessory) {
+            services.push(this.tvService);
+            services.push(this.informationService);
+            services.push(this.tvSpeaker);
+        }
+        return services;
     }
 
     buildRequest(url: string, method: string, body: string) {
@@ -332,11 +346,14 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                             }
                         }
                     }
+                } else {
+                    this.log.debug('fetchChannels: ' + response.statusCode);
                 }
-                resolution();
             } else {
                 this.log.debug('fetchChannels:' + error);
+                this.log.warn("fetchChannels - can not reach TV API. Inputs won't be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.");
             }
+            resolution();
         }.bind(this));
     }
 
@@ -440,8 +457,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 } else {
                     this.log.debug('fetchPossibleApplications: ' + response.statusCode);
                 }
-                resolution();
+            } else {
+                this.log.warn("fetchPossibleApplications - can not reach TV API. Inputs won't be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.");
             }
+            resolution();
         }.bind(this));
     }
 
@@ -535,9 +554,20 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 }
             } else {
                 this.log.debug('setOn: ' + error);
-                this.wakeOnLan();
+                this.wakeOnLan(function (this){
+                    setTimeout(function (this) {
+                        this.log.info("WOL triggered sleep 3 seconds");
+                        request(this.buildRequest('powerstate', 'POST', JSON.stringify(request_body)), function(this, error, response) {
+                            if (response) {
+                                if (response.statusCode === 200) {
+                                    return;
+                                }
+                            }
+                            callback(null, value);
+                        }.bind(this));
+                    }.bind(this), 3000);
+                });
             }
-            callback(null, 0);
         }.bind(this));
         return this;
     }
