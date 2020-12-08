@@ -140,14 +140,16 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 this.fetchPossibleApplications(resolution);
             });
         }).then(() =>{
-            if (Object.keys(this.configuredApps).length == 0) {
-                this.log.warn('No applications/channel inputs had been configured. If that was not inteneded, make sure that TV is available during homebridge startup.');
+            if (Object.keys(this.configuredApps).length === 0) {
+                this.log.warn('No applications/channel inputs had been configured.' +
+                    'If that was not inteneded, make sure that TV is available during homebridge startup.');
             } else {
                 if (this.config.printConfiguredApps) {
                     this.log.info(JSON.stringify(this.configuredApps));
                 }
             }
-            this.log.info('Startup Completed - Publishing External HomeKit Accessory. Accessory will not be automaticly added to Home - it has to be manually added in Home app.');
+            this.log.info('Startup Completed - Publishing External HomeKit Accessory.' +
+                'Accessory will not be automaticly added to Home - it has to be manually added in Home app.');
             this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
         });
 
@@ -351,7 +353,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 }
             } else {
                 this.log.debug('fetchChannels:' + error);
-                this.log.warn("fetchChannels - can not reach TV API. Inputs won't be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.");
+                this.log.warn('fetchChannels - can not reach TV API.' + 
+                    'Inputs won\'t be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.');
             }
             resolution();
         }.bind(this));
@@ -458,7 +461,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.debug('fetchPossibleApplications: ' + response.statusCode);
                 }
             } else {
-                this.log.warn("fetchPossibleApplications - can not reach TV API. Inputs won't be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.");
+                this.log.warn('fetchPossibleApplications - can not reach TV API.' +
+                    ' Inputs won\'t be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.');
             }
             resolution();
         }.bind(this));
@@ -556,7 +560,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 this.log.debug('setOn: ' + error);
                 this.wakeOnLan(function (this){
                     setTimeout(function (this) {
-                        this.log.info("WOL triggered sleep 3 seconds");
+                        this.log.info('WOL triggered sleep 3 seconds');
                         request(this.buildRequest('powerstate', 'POST', JSON.stringify(request_body)), function(this, error, response) {
                             if (response) {
                                 if (response.statusCode === 200) {
