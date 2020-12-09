@@ -41,6 +41,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     private volumeMin = 0;
     private volumeMax = 0;
     private unknownStructure = false;
+    private lastError = '';
     private lastPlayPause = 'Pause';
 
     constructor(log: Logging, config: AccessoryConfig, api: API) {
@@ -238,7 +239,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                     }
                                 }
                             }
-                            this.log.debug('getCurrentActivity: unknown application:' + body);
+                            if (!this.unknownStructure) {
+                                this.log.debug('getCurrentActivity: unknown application:' + body);
+                                this.unknownStructure = true;
+                            }
                             callback(null);
                         }.bind(this));
                         return;
@@ -262,7 +266,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                     this.log.warn('getCurrentActivity: statusCode:' + response.statusCode);
                                 }
                             } else {
-                                this.log.warn('getCurrentActivity: error:' + error);
+                                if (this.lastError !== String(error)) {
+                                    this.log.warn('getCurrentActivity: error:' + error);
+                                    this.lastError = String(error);
+                                }
                             }
                             this.log.warn('getCurrentActivity: unknown application:' + JSON.stringify(currentApp));
                             callback(null);
@@ -273,7 +280,10 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     this.log.warn('getCurrentActivity: statusCode:' + response.statusCode);
                 }
             } else {
-                this.log.warn('getCurrentActivity: error: ' + error);
+                if (this.lastError !== String(error)) { 
+                    this.log.warn('getCurrentActivity: error: ' + error);
+                    this.lastError = String(error);
+                }
                 callback(null, 0);
             }
         }.bind(this));
