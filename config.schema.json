@@ -82,6 +82,15 @@
                         },
                         "default": "false"
                     },
+                    "favoriteListId": {
+                        "title": "Favorite List ID",
+                        "description": "Which List shall be used by plugin? By default use 1",
+                        "type": "string",
+                        "condition": {
+                            "functionBody": "return model.channels.useFavorites === true;"
+                        },
+                        "default": "1"
+                    },
                     "includeAll": {
                         "title": "Use all channels from TV",
                         "description": "If enabled plugin will load all channels from TV as homekit input sources",

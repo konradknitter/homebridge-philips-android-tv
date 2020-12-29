@@ -3,6 +3,8 @@ import { Logging } from 'homebridge';
 import request from 'request';
 import wol from 'wake_on_lan';
 
+import PhilipsTVChannels from './PhilipsTVChannels';
+
 class PhilipsTV {
 
     private on = false;
@@ -12,6 +14,7 @@ class PhilipsTV {
     private apiPass: string;
     private macAddress : string;
     private log : Logging;
+    public tvChannels: PhilipsTVChannels;
 
     constructor(log: Logging, ip: string, apiUser: string, apiPass: string, macAddress: string) {
         this.log = log;
@@ -19,6 +22,8 @@ class PhilipsTV {
         this.apiUser = apiUser;
         this.apiPass = apiPass;
         this.macAddress = macAddress;
+
+        this.tvChannels = new PhilipsTVChannels;
 
         setInterval(() => {
             this.checkPowerState();
@@ -149,6 +154,27 @@ class PhilipsTV {
             } else {
                 this.responsive = false;
             }
+        }.bind(this));
+    }
+
+    updateChannelList(callback: (value: any) => void) : void {
+        this.getResponse('channeldb/tv/channelLists/all', 'GET', '', (body) => {
+            this.tvChannels.reloadChannels(body);
+            callback(true);
+        }, (err) => {
+            this.debug(err);
+        });
+    }
+
+    getResponse(url: string, method: string, body: string, callback: (body: string) => void, callback_err: (err: string) => void) {
+        request(this.buildRequest(url, method, body), function(this, error, response, body) {
+            if (response) {
+                if (response.statusCode === 200) {
+                    callback(body);
+                    return;
+                }
+            }
+            callback_err(error);
         }.bind(this));
     }
 
