@@ -52,14 +52,17 @@ You can then add username and password key in your homebridge config
             "YouTube",
             "TV"
         ],
-        "channels": [
-            "TVP3 Wroclaw",
-            "Polsat",
-            "TVN",
-            "TV4",
-            "TVN 7",
-            "TV6"
-        ],
+        "channels": {
+            "useFavorites": false, 
+            "channels": [
+                "TVP3 Wroclaw",
+                "Polsat",
+                "TVN",
+                "TV4",
+                "TVN 7",
+                "TV6"
+            ]
+        }
         "alternativePlayPause": true
     }
 

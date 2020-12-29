@@ -1,6 +1,7 @@
 {
     "pluginAlias": "PhilipsAndroidTV",
     "pluginType": "accessory",
+    "description": "Due to limitations of External Accessories, this accesssory requires Homebridge restart to reload configuration.",
     "schema": {
         "type": "object",
         "properties": {
@@ -51,7 +52,7 @@
             },
             "dedicatedVolumeLightbulb": {
                 "title": "Dedicated Volume Lightbulb",
-                "description": "If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes.",
+                "description": "If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes. Please be aware that plugin regardless provides TV speaker service (usable in iOS Remote Widget)",
                 "type": "boolean",
                 "default": "false"
             },
@@ -70,10 +71,24 @@
             },
             "channels": {
                 "title": "List of Channels",
-                "description": "List of Channels that will be added as Input in HomeKit.",
-                "type": "array",
-                "items": {
-                    "type": "string"
+                "type": "object",
+                "properties": {
+                    "useFavorites": {
+                        "title": "Use favorites from TV",
+                        "description": "If enabled plugin will load the favorite channels from the tv as homekit input sources.",
+                        "type": "boolean",
+                        "default": "false"
+                    },
+                    "channels": {
+                        "title": "List of Channels that will be added as Input in HomeKit.",
+                        "type": "array",
+                        "condition": {
+                            "functionBody": "return model.channels.useFavorites === false;"
+                        },
+                        "items": {
+                            "type": "string"
+                        }
+                    }
                 }
             },
             "apps": {

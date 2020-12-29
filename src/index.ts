@@ -15,6 +15,8 @@ import {
 import request from 'request';
 import wol from 'wake_on_lan';
 
+import PhilipsTV from './PhilipsTV';
+
 const PLUGIN_NAME = 'homebridge-philips-android-tv';
 let hap: HAP;
 
@@ -43,12 +45,31 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     private unknownStructure = false;
     private lastError = '';
     private lastPlayPause = 'Pause';
+    private tv : PhilipsTV;
 
     constructor(log: Logging, config: AccessoryConfig, api: API) {
         this.log = log;
         this.name = config.name;
         this.config = config;
         this.api = api;
+
+        if (Object.keys(this.config).includes('channels')) {
+            if (Array.isArray(this.config.channels)) {
+                const newStructure = {
+                    'useFavorites': false,
+                    'channels': this.config.channels,
+                };
+
+                this.config.channels = newStructure;
+                this.log.warn('You are using legacy structure of channels configuration. Please update it to remove this warning.');
+            }
+        } else {
+            this.config.channels = {
+                'useFavorites': false,
+            };
+        }
+
+        this.tv = new PhilipsTV(log, String(config.ip), String(config.apiUser), String(config.apiPass), String(config.macAddress));
 
         const uuid = hap.uuid.generate(PLUGIN_NAME + this.name);
 
@@ -125,19 +146,15 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         }
 
         new Promise((resolution) => {
-            this.log.info('Startup Phase #1 - Trying to WakeOnLan TV');
-            this.wakeOnLan(resolution);
-        }).then(() => {
-            this.log.info('Startup Phase #2 - Waiting 5 second');
-            return new Promise(resolve => setTimeout(resolve, 5000));
+            this.tv.callWhenBecomeResponsive(resolution);
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.info('Startup Phase #3 - Fetching information about channels from TV');
+                this.log.info('Startup Phase #2 - Fetching information about channels from TV');
                 this.fetchChannels(resolution);
             });
         }).then(() => {
             return new Promise((resolution) => {
-                this.log.info('Startup Phase #4 - Fetching information about application from TV');
+                this.log.info('Startup Phase #3 - Fetching information about application from TV');
                 this.fetchPossibleApplications(resolution);
             });
         }).then(() =>{
@@ -323,51 +340,97 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     fetchChannels(resolution) {
-        request(this.buildRequest('channeldb/tv/channelLists/all', 'GET', ''), function(this, error, response, body) {
-            if (response) {
-                if (response.statusCode === 200) {
-                    const settings = JSON.parse(body);
-                    let log = 'Available Channels: ';
-                    for (const channel of settings.Channel) {
-                        log += channel.name + ', ';
-                    }
-                    
-                    this.log.info(log);
-
-                    let i = Object.keys(this.configuredApps).length;
-                    for (const channel of settings.Channel) {
-                        if (Object.keys(this.config).includes('channels')) {
-                            if (this.config.channels.includes(channel.name)) {
-                                this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
-                                const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
-                    
-                                service.setCharacteristic(hap.Characteristic.Identifier, i++);
-                                service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
-                                service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-                                service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
-                                service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
-                                    hap.Characteristic.CurrentVisibilityState.SHOWN);
-                    
-                                service.getCharacteristic(hap.Characteristic.ConfiguredName)
-                                    .on('set', (name, callback) => {
-                                        callback(null, name);
-                                    });
-                    
-                                this.tvAccessory.addService(service);
-                                this.tvService.addLinkedService(service);
-                            }
+        //@ts-ignore
+        if (this.config.channels.useFavorites) {
+            request(this.buildRequest('channeldb/tv/favoritelLists/all', 'GET', ''), function(this, error, response, body) {
+                if (response) {
+                    if (response.statusCode === 200) {
+                        const settings = JSON.parse(body);
+                        let log = 'Favorite Channels: ';
+                        for (const channel of settings.Channel) {
+                            log += channel.name + ', ';
                         }
+                        
+                        this.log.info(log);
+
+                        let i = Object.keys(this.configuredApps).length;
+                        for (const channel of settings.Channel) {
+                            this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
+                            const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
+                        
+                            service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                            service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
+                            service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                            service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
+                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                hap.Characteristic.CurrentVisibilityState.SHOWN);
+                        
+                            service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                .on('set', (name, callback) => {
+                                    callback(null, name);
+                                });
+                        
+                            this.tvAccessory.addService(service);
+                            this.tvService.addLinkedService(service);
+                        }
+                    } else {
+                        this.log.debug('fetchChannels: ' + response.statusCode);
                     }
                 } else {
-                    this.log.debug('fetchChannels: ' + response.statusCode);
+                    this.log.debug('fetchChannels:' + error);
+                    this.log.warn('fetchChannels - can not reach TV API.' + 
+                        'Inputs won\'t be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.');
                 }
-            } else {
-                this.log.debug('fetchChannels:' + error);
-                this.log.warn('fetchChannels - can not reach TV API.' + 
-                    'Inputs won\'t be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.');
-            }
-            resolution();
-        }.bind(this));
+                resolution();
+            }.bind(this));
+        } else {
+            request(this.buildRequest('channeldb/tv/channelLists/all', 'GET', ''), function(this, error, response, body) {
+                if (response) {
+                    if (response.statusCode === 200) {
+                        const settings = JSON.parse(body);
+                        let log = 'Available Channels: ';
+                        for (const channel of settings.Channel) {
+                            log += channel.name + ', ';
+                        }
+                        
+                        this.log.info(log);
+    
+                        let i = Object.keys(this.configuredApps).length;
+                        for (const channel of settings.Channel) {
+                            if (Object.keys(this.config).includes('channels')) {
+                                if (this.config.channels.channels.includes(channel.name)) {
+                                    this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
+                                    const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
+                        
+                                    service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                                    service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
+                                    service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                                    service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
+                                    service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                        hap.Characteristic.CurrentVisibilityState.SHOWN);
+                        
+                                    service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                        .on('set', (name, callback) => {
+                                            callback(null, name);
+                                        });
+                        
+                                    this.tvAccessory.addService(service);
+                                    this.tvService.addLinkedService(service);
+                                }
+                            }
+                        }
+                    } else {
+                        this.log.debug('fetchChannels: ' + response.statusCode);
+                    }
+                } else {
+                    this.log.debug('fetchChannels:' + error);
+                    this.log.warn('fetchChannels - can not reach TV API.' + 
+                        'Inputs won\'t be visible in HomeKit. Please restart homebridge when TV will be online to recover inputs.');
+                }
+                resolution();
+            }.bind(this));
+        }
+        
     }
 
     fetchSettings() {
@@ -554,61 +617,16 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
-        let request_body;
         if (value === 1) {
-            request_body = { 'powerstate': 'On' };
+            this.tv.turnOn();
         } else {
-            request_body = { 'powerstate': 'Standby' };
+            this.tv.turnOff();
         }
-        request(this.buildRequest('powerstate', 'POST', JSON.stringify(request_body)), function(this, error, response) {
-            if (response) {
-                if (response.statusCode === 200) {
-                    callback(null, value);
-                    return;
-                }
-            } else {
-                this.log.debug('setOn: ' + error);
-                this.wakeOnLan(function (this){
-                    setTimeout(function (this) {
-                        this.log.info('WOL triggered sleep 3 seconds');
-                        request(this.buildRequest('powerstate', 'POST', JSON.stringify(request_body)), function(this, error, response) {
-                            if (response) {
-                                if (response.statusCode === 200) {
-                                    return;
-                                }
-                            }
-                            callback(null, value);
-                        }.bind(this));
-                    }.bind(this), 3000);
-                });
-            }
-        }.bind(this));
-        return this;
+        callback(null, value);
     }
 
     getOn(callback: CharacteristicGetCallback) {
-        request(this.buildRequest('powerstate', 'GET', ''), function(this, error, response, body) {
-            if (response) {
-                if (response.statusCode === 200) {
-                    if (body) {
-                        const powerstate = JSON.parse(body);
-                        if ('On' === powerstate.powerstate) {
-                            callback(null, true);
-                            return;
-                        }
-                        this.log.debug('Device ' + this.config.name + ' is in standby mode. ' + body);
-                        callback(null, false);
-                    } else {
-                        this.log.debug('Device ' + this.config.name + ' is offline. ' + response.statusCode);
-                        callback(null, false);
-                    }
-                }
-            } else {
-                this.log.debug('Device ' + this.config.name + ' is offline. ' + error);
-                callback(null, false);   
-            }
-        }.bind(this));
-        return this;
+        callback(null, this.tv.isOn());
     }
 
     sendVolumeControl(remoteKey: CharacteristicValue, callback: CharacteristicSetCallback) {
