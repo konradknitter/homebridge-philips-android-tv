@@ -58,6 +58,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 const newStructure = {
                     'useFavorites': false,
                     'channels': this.config.channels,
+                    'includeAll': false,
                 };
 
                 this.config.channels = newStructure;
@@ -66,6 +67,7 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
         } else {
             this.config.channels = {
                 'useFavorites': false,
+                'includeAll': false,
             };
         }
 
@@ -341,20 +343,21 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
     fetchChannels(resolution) {
         //@ts-ignore
-        if (!this.config.channels.useFavorites) {
+        if (this.config.channels.useFavorites) {
             request(this.buildRequest('channeldb/tv/favoriteLists/all', 'GET', ''), function(this, error, response, body) {
                 if (response) {
                     if (response.statusCode === 200) {
                         const settings = JSON.parse(body);
-                        if (Object.keys(this.config).includes('Channel')) {
+                        this.log.info(body);
+                        if (Object.keys(settings).includes('channels')) {
                             let log = 'Favorite Channels: ';
-                            for (const channel of settings.Channel) {
+                            for (const channel of settings.channels) {
                                 log += channel.name + ', ';
                         
                                 this.log.info(log);
 
                                 let i = Object.keys(this.configuredApps).length;
-                                for (const channel of settings.Channel) {
+                                for (const channel of settings.channels) {
                                     this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
                                     const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
                             
@@ -399,26 +402,25 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     
                         let i = Object.keys(this.configuredApps).length;
                         for (const channel of settings.Channel) {
-                            if (Object.keys(this.config).includes('channels')) {
-                                if (this.config.channels.channels.includes(channel.name)) {
-                                    this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
-                                    const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
+                            if ((Object.keys(this.config).includes('channels') && this.config.channels.channels.includes(channel.name))
+                                || this.config.channels.includeAll) {
+                                this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
+                                const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
                         
-                                    service.setCharacteristic(hap.Characteristic.Identifier, i++);
-                                    service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
-                                    service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-                                    service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
-                                    service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
-                                        hap.Characteristic.CurrentVisibilityState.SHOWN);
+                                service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                                service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
+                                service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                                service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
+                                service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                    hap.Characteristic.CurrentVisibilityState.SHOWN);
                         
-                                    service.getCharacteristic(hap.Characteristic.ConfiguredName)
-                                        .on('set', (name, callback) => {
-                                            callback(null, name);
-                                        });
+                                service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                    .on('set', (name, callback) => {
+                                        callback(null, name);
+                                    });
                         
-                                    this.tvAccessory.addService(service);
-                                    this.tvService.addLinkedService(service);
-                                }
+                                this.tvAccessory.addService(service);
+                                this.tvService.addLinkedService(service);
                             }
                         }
                     } else {

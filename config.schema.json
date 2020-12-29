@@ -77,13 +77,22 @@
                         "title": "Use favorites from TV",
                         "description": "If enabled plugin will load the favorite channels from the tv as homekit input sources.",
                         "type": "boolean",
+                        "condition": {
+                            "functionBody": "return model.channels.includeAll === false;"
+                        },
                         "default": "false"
+                    },
+                    "includeAll": {
+                        "title": "Use all channels from TV",
+                        "description": "If enabled plugin will load all channels from TV as homekit input sources",
+                        "type": "boolean",
+                        "default": "true"
                     },
                     "channels": {
                         "title": "List of Channels that will be added as Input in HomeKit.",
                         "type": "array",
                         "condition": {
-                            "functionBody": "return model.channels.useFavorites === false;"
+                            "functionBody": "return model.channels.useFavorites === false && model.channels.includeAll === false;"
                         },
                         "items": {
                             "type": "string"
