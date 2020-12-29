@@ -341,37 +341,39 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
     fetchChannels(resolution) {
         //@ts-ignore
-        if (this.config.channels.useFavorites) {
-            request(this.buildRequest('channeldb/tv/favoritelLists/all', 'GET', ''), function(this, error, response, body) {
+        if (!this.config.channels.useFavorites) {
+            request(this.buildRequest('channeldb/tv/favoriteLists/all', 'GET', ''), function(this, error, response, body) {
                 if (response) {
                     if (response.statusCode === 200) {
                         const settings = JSON.parse(body);
-                        let log = 'Favorite Channels: ';
-                        for (const channel of settings.Channel) {
-                            log += channel.name + ', ';
-                        }
+                        if (Object.keys(this.config).includes('Channel')) {
+                            let log = 'Favorite Channels: ';
+                            for (const channel of settings.Channel) {
+                                log += channel.name + ', ';
                         
-                        this.log.info(log);
+                                this.log.info(log);
 
-                        let i = Object.keys(this.configuredApps).length;
-                        for (const channel of settings.Channel) {
-                            this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
-                            const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
-                        
-                            service.setCharacteristic(hap.Characteristic.Identifier, i++);
-                            service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
-                            service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
-                            service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
-                            service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
-                                hap.Characteristic.CurrentVisibilityState.SHOWN);
-                        
-                            service.getCharacteristic(hap.Characteristic.ConfiguredName)
-                                .on('set', (name, callback) => {
-                                    callback(null, name);
-                                });
-                        
-                            this.tvAccessory.addService(service);
-                            this.tvService.addLinkedService(service);
+                                let i = Object.keys(this.configuredApps).length;
+                                for (const channel of settings.Channel) {
+                                    this.configuredApps[i] = {'name': channel.name, 'type': 'channel'};
+                                    const service = new hap.Service.InputSource(this.name + channel.name, channel.name);
+                            
+                                    service.setCharacteristic(hap.Characteristic.Identifier, i++);
+                                    service.setCharacteristic(hap.Characteristic.ConfiguredName, channel.name);
+                                    service.setCharacteristic(hap.Characteristic.IsConfigured, hap.Characteristic.IsConfigured.CONFIGURED);
+                                    service.setCharacteristic(hap.Characteristic.InputSourceType, hap.Characteristic.InputSourceType.TUNER);
+                                    service.setCharacteristic(hap.Characteristic.CurrentVisibilityState,
+                                        hap.Characteristic.CurrentVisibilityState.SHOWN);
+                            
+                                    service.getCharacteristic(hap.Characteristic.ConfiguredName)
+                                        .on('set', (name, callback) => {
+                                            callback(null, name);
+                                        });
+                            
+                                    this.tvAccessory.addService(service);
+                                    this.tvService.addLinkedService(service);
+                                }
+                            }
                         }
                     } else {
                         this.log.debug('fetchChannels: ' + response.statusCode);
