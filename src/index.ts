@@ -513,8 +513,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 }
             } else {
                 this.log.debug('Device ' + this.config.name + ' is not muted or offline');
-                callback(null, true);
             }
+            callback(null, false);
         }.bind(this));
         return this;
     }
