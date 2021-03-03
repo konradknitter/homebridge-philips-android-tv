@@ -276,9 +276,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     return;
                 } else {
                     this.log.debug('getCurrentActivity: statusCode:' + response.statusCode);
+                    callback(null);
                 }
-            } else {
-                callback(null, 0);
             }
         }.bind(this));
     }
@@ -291,8 +290,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                     callback(null, system.name);
                     return;
                 }
-                callback(null, 'Unknown');
             }
+            callback(null, 'Unknown');
         }.bind(this));
     }
 
@@ -399,26 +398,21 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 callback(null, value);
             }.bind(this));
         } else if (this.configuredApps[Number(value)].type === 'channel') {
-            request(this.buildRequest('channeldb/tv/channelLists/all', 'GET', ''), function(this, error, response, body) {
-                const settings = JSON.parse(body);
-                for (const channel of settings.Channel) {
-                    if (channel.name === this.configuredApps[Number(value)].name) {
-                        const channelRequest = {'channel': channel};
-                        request(this.buildRequest('activities/tv', 'GET', ''), function(this, error, response, body) {
-                            if (response) {
-                                if (response.statusCode === 200) {
-                                    channelRequest['channelList'] = JSON.parse(body).channelList;
-                                    request(this.buildRequest('activities/tv', 'POST', JSON.stringify(channelRequest)),
-                                        function(this, error, response) {
-                                            if (!response) {
-                                                this.log.debug(error);
-                                            }
-                                            callback(null, value);
-                                            return;
-                                        }.bind(this));
+            this.log.info('Switching channel to: ' + this.configuredApps[Number(value)].name);
+            const channel = this.tv.tvChannels.getObjectByName(this.configuredApps[Number(value)].name);
+            const channelRequest = {'channel': channel};
+            request(this.buildRequest('activities/tv', 'GET', ''), function(this, error, response, body) {
+                if (response) {
+                    if (response.statusCode === 200) {
+                        channelRequest['channelList'] = JSON.parse(body).channelList;
+                        request(this.buildRequest('activities/tv', 'POST', JSON.stringify(channelRequest)),
+                            function(this, error, response) {
+                                if (!response) {
+                                    this.log.debug(error);
                                 }
-                            }
-                        }.bind(this));
+                                callback(null, value);
+                                return;
+                            }.bind(this));
                     }
                 }
             }.bind(this));
@@ -484,8 +478,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 return;
             } else {
                 this.log.debug('Device ' + this.config.name + ' is offline');
-                callback(null, 0);
             }
+            callback(null, 0);
         }.bind(this));
         return this;
     }

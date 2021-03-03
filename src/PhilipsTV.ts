@@ -53,6 +53,7 @@ class PhilipsTV {
             }
             if (counter === 100) {
                 this.warn('Tried to make TV responsive over 100 requests and failed. Please double check configuration.');
+                callback(false);
                 return;
             }
             setTimeout(() => {
@@ -162,6 +163,7 @@ class PhilipsTV {
             this.tvChannels.reloadChannels(body);
             callback(true);
         }, (err) => {
+            callback(false);
             this.debug(err);
         });
     }
