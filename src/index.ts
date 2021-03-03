@@ -246,9 +246,8 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                     }
                                 }
                             }
-                            callback(null);
+                            callback(null, 0);
                         }.bind(this));
-                        return;
                     } else {
                         request(this.buildRequest('applications', 'GET', ''), function(this, error, response, body) {
                             if (response) {
@@ -270,15 +269,15 @@ class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                                 }
                             }
                             this.log.debug('getCurrentActivity: unknown application:' + JSON.stringify(currentApp));
-                            callback(null);
+                            callback(null, 0);
                         }.bind(this));
                     }
                     return;
                 } else {
                     this.log.debug('getCurrentActivity: statusCode:' + response.statusCode);
-                    callback(null);
                 }
             }
+            callback(null, 0);
         }.bind(this));
     }
 
