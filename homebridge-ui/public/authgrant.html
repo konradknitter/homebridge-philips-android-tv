@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="block-title">Pairing</div>
+<div class="block">
+  TV should show notification with PIN.
+</div>
+<form action="authgrant/" method="GET">
+  {% if status == 0 %}
+  <div class="block block-strong row">
+    <p>Pairing successful</p>
+  </div>
+  <div class="block block-strong row">
+    <div class="item-title item-label">API Login</div>
+    <div class="item-input-wrap">
+        <b>{{ login }}</b>
+    </div>
+
+    <div class="item-title item-label">API Password</div>
+    <div class="item-input-wrap">
+        <b>{{ password }}</b>
+    </div>
+
+  </div>
+  <div class="block block-strong row">
+    <div class="item-title item-label">Configuration</div>
+    <div class="item-input-wrap">
+        <pre>
+{
+    "accessory": "PhilipsAndroidTV", 
+    "name": "Name of TV",
+    "ip": "{{ ip }}",
+    "macAddress": "TV Wireless card MAC Address for Wake on LAN functionality",
+    "apiUser": "{{ login }}",
+    "apiPass": "{{ password }}",
+}
+        </pre>
+    </div>
+
+    Please note that some software upgrades on TV might remove this authentication. Procedure needs to be repeated to generate new pair.
+  </div>
+  {% else %}
+  <div class="block">
+    Pairing authentication failure <b>{{ errorCode }}</b>
+  </div>
+  {% endif %}
+{% endblock %}
