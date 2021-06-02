@@ -28,15 +28,12 @@ Scf-Fi:
 
 # Authentication
 
-Android TV 2016 models Philips use an authenticated HTTPS JointSpace API version 6.
-Every control- or status-call needs digest authentification which contains of a pre generated username and password.
-You have to do this once for your TV, to use the python script [philips_android_tv](https://github.com/suborb/philips_android_tv).
+Since plug-in version 0.9 pairing support has been added via Homebridge Config UI.
+In the Plug-in settings option to Pair New TV shows up.
 
-Here is an example pairing call for philips_android_tv :
+![Plugin Config Splash Screen](/docs/images/splash_screens.png?raw=true "Plugin Config Splash Screen")
 
-python ./philips.py --host 10.0.1.23 pair
-
-You can then add username and password key in your homebridge config
+Alternativly, I recommend to use the python script [philips_android_tv](https://github.com/suborb/philips_android_tv). 
 
 # Plug-in configuration
 
@@ -80,3 +77,4 @@ Accessory is registered as "External Accessory", it has to be once added manuall
 # References
 
 Key knowledge about Philips TV APIs https://github.com/eslavnov/pylips/wiki
+Python Implementation for Philips TV API https://github.com/suborb/philips_android_tv
