@@ -1,6 +1,7 @@
 # Homebridge Philips Android TV
 
 This plug-in provides support for Homebridge Philips Android TVs.
+Protocols used are the same as official [Philips TV Remote Application](https://apps.apple.com/be/app/philips-tv-remote-app/id1479155903)
 
 ## Info
 
@@ -31,9 +32,11 @@ Scf-Fi:
 Since plug-in version 0.9 pairing support has been added via Homebridge Config UI.
 In the Plug-in settings option to Pair New TV shows up.
 
-![Plugin Config Splash Screen](/docs/images/splash_screens.png?raw=true "Plugin Config Splash Screen")
+![Plugin Config Splash Screen](/docs/images/splash_screen.png?raw=true "Plugin Config Splash Screen")
 
 Alternativly, I recommend to use the python script [philips_android_tv](https://github.com/suborb/philips_android_tv). 
+
+It was noticed by users that TV resets all credentials between Software Updates. After updating TV, repair.
 
 # Plug-in configuration
 
