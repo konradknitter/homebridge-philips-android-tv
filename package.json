@@ -27,7 +27,7 @@
     ],
     "dependencies": {
         "@homebridge/plugin-ui-utils": "0.0.19",
-        "@konradknitter/philipsandroidtv": "^0.5.2",
+        "@konradknitter/philipsandroidtv": "^0.5.3",
         "debug": "~2.6.9",
         "morgan": "~1.9.1",
         "request": "^2.69.0",
