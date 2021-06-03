@@ -13,6 +13,7 @@ import { Authentication, PhilipsTV } from '@konradknitter/philipsandroidtv';
 import PhilipsTVChannels from './PhilipsTVChannels';
 
 export interface PhilipsTVConfig {
+    name: string;
     ip: string;
     mac: string;
     apiUser: string;
@@ -79,24 +80,24 @@ export class PhilipsTVAccessory {
     }
 
     async fetchTVData() {
-        this.log.info('Connecting to TV to fetch current informations');
+        this.log.info('[' + this.config.name + '] Connecting to TV to fetch current informations');
         try {
             const result = await this.tv.wakeUntilAPIReady();
-            this.log.info('TV state ' + JSON.stringify(result));
+            this.log.info('[' + this.config.name + '] TV state ' + JSON.stringify(result));
     
             const apps = await this.tv.getApplications();
-            this.log.debug('Applications: (lenght) ' + apps.applications.length);
+            this.log.debug('[' + this.config.name + '] Applications: (lenght) ' + apps.applications.length);
     
             this.apps = apps;
     
             const channels = await this.tv.getTVChannels();
-            this.log.debug('Channels: (lenght) ' + channels.Channel.length);
+            this.log.debug('[' + this.config.name + '] Channels: (lenght) ' + channels.Channel.length);
     
             this.channels.reloadChannels(JSON.stringify(channels));
     
             await this.tv.getVolumePercentage();
         } catch {
-            this.log.error('Couldn\'t fetch basic informations from TV.');
+            this.log.error('[' + this.config.name + '] Couldn\'t fetch basic informations from TV.');
         }
     }
 
@@ -151,7 +152,7 @@ export class PhilipsTVAccessory {
         this.accessory.addService(this.tvService);
         this.accessory.addService(this.tvSpeaker);
 
-        if (this.config.apps.length > 0) {
+        if (this.config.apps && this.config.apps.length > 0) {
             const applications = await this.tv.getApplications();
             for (const application of applications.applications) {
                 if (this.config.apps.includes((application.name))) {
@@ -160,7 +161,7 @@ export class PhilipsTVAccessory {
             }
         }
 
-        this.log.info('Applications setup finished');
+        this.log.info('[' + this.config.name + '] Applications setup finished');
 
         const channels = await this.tv.getTVChannels();
         for (const channel of channels.Channel) {
@@ -177,7 +178,7 @@ export class PhilipsTVAccessory {
             }
         }
 
-        this.log.info('Channels setup finished');
+        this.log.info('[' + this.config.name + '] Channels setup finished');
 
         setInterval(() => {
             this.checkStatus();
@@ -189,18 +190,18 @@ export class PhilipsTVAccessory {
             const powerState = await this.tv.getPowerState();
 
             if (!this.responsive) {
-                this.log.info('Start responding again.');
+                this.log.info('[' + this.config.name + '] Start responding again.');
                 this.responsive = true;
             }
 
             if (powerState.powerstate === 'On') {
                 if (!this.on) {
-                    this.log.info('TV has been turn on.');
+                    this.log.info('[' + this.config.name + '] TV has been turn on.');
                     this.on = true;
                 }
             } else {
                 if (this.on) {
-                    this.log.info('TV has been turned off.');
+                    this.log.info('[' + this.config.name + '] TV has been turned off.');
                     this.on = false;
                 }
             }
@@ -208,7 +209,7 @@ export class PhilipsTVAccessory {
             const volume = await this.tv.getVolumePercentage();
 
             if (volume !== this.volume) {
-                this.log.info('TV volume has been changed to ' + volume + '%.');
+                this.log.info('[' + this.config.name + '] TV volume has been changed to ' + volume + '%.');
                 this.volume = volume;
                 if (volume > 0) {
                     this.lastPositiveVolume = this.volume;
@@ -218,18 +219,18 @@ export class PhilipsTVAccessory {
             const app = await this.tv.getCurrentActivity();
             if (app.component.packageName !== this.currentApp.component.packageName) {
                 this.currentApp = app;
-                this.log.info('Current application has been changed to ' + app.component.packageName + '.');
+                this.log.info('[' + this.config.name + '] Current application has been changed to ' + app.component.packageName + '.');
             }
 
             const tvChannel = await this.tv.getCurrentTVChannel();
 
             if (tvChannel.channel.name !== this.currentChannel.channel.name) {
                 this.currentChannel = tvChannel;
-                this.log.info('TV Channel has been changed to ' + tvChannel.channel.name + '.');
+                this.log.info('[' + this.config.name + '] TV Channel has been changed to ' + tvChannel.channel.name + '.');
             }
         } catch (err) {
             if (this.responsive) {
-                this.log.info('Stop responding. Trying to wake over lan.');
+                this.log.info('[' + this.config.name + '] Stop responding. Trying to wake over lan.');
                 this.responsive = false;
             }
             await this.tv.wakeOnLan();
@@ -374,7 +375,7 @@ export class PhilipsTVAccessory {
             if (keyMap.has(remoteKey)) {
                 key = keyMap.get(remoteKey) as string;
             } else {
-                this.log.error('Unsupported key ' + remoteKey);
+                this.log.error('[' + this.config.name + '] Unsupported key ' + remoteKey);
             }
         }
 

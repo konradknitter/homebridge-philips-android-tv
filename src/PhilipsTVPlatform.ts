@@ -26,25 +26,25 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
 
   validateConfiguration() : boolean {
       for (const tv of this.config.tvs) {
-          this.log.debug('Validating configuration');
+          this.log.debug('[' + tv.name + '] Validating configuration');
 
           if (!tv.name) {
-              this.log.error('One of TVs do not have configured name');
+              this.log.error('[' + tv.name + '] One of TVs do not have configured name');
               return false;
           }
 
           if (!tv.ip || !validate.ip.test(tv.ip)) {
-              this.log.error(tv.name + ' IP Address is not set or not proper IP address.');
+              this.log.error('[' + tv.name + '] IP Address is not set or not proper IP address.');
               return false;
           }
 
           if (tv.mac && !validate.mac.test(tv.mac)) {
-              this.log.error(tv.name + ' MAC Address is not set or not proper MAC address.');
+              this.log.error('[' + tv.name + '] MAC Address is not set or not proper MAC address.');
               return false;
           }
 
           if (!tv.apiUser || !tv.apiPass) {
-              this.log.error(tv.name + ' API Credentials not set. Pair TV first.');
+              this.log.error('[' + tv.name + '] API Credentials not set. Pair TV first.');
               return false;
           }
       }
@@ -53,19 +53,29 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
 
   async setupAccessory(accessory: PlatformAccessory, tv: Record<string, string>) {
       const config: PhilipsTVConfig = {
+          name: tv.name,
           ip: tv.ip,
           mac: tv.mac,
           apiUser: tv.apiUser,
           apiPass: tv.apiPass,
           alternatingPlayPause: false,
           channels: {
+              useFavorites: false,
+              includeAll: false,
+              favoriteListId: 1,
+              channels: [],
+          },
+          apps: this.config.apps,
+      };
+
+      if (tv.channels) {
+          config.channels = {
               useFavorites: (tv.channels as any).useFavorites,
               includeAll: (tv.channels as any).includeAll,
               favoriteListId: (tv.channels as any).favoriteListId,
               channels: (tv.channels as any).channels,
-          },
-          apps: this.config.apps,
-      };
+          };
+      }
 
       const tvAccessory: PhilipsTVAccessory = new PhilipsTVAccessory(this.log, this.api, accessory, config);
 
