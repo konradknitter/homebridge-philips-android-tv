@@ -161,6 +161,7 @@ Accessory is registered as "External Accessory", it has to be once added manuall
 # Troubleshooting
 
 If you have any issues with plug-in, please make sure to update homebridge and plug-in to newest version first.
+In case of problems with TV inputs - remove and add TV in iOS Home app.
 
 # Roadmap
 
