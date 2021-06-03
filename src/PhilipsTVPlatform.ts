@@ -67,7 +67,7 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
               favoriteListId: 1,
               channels: [],
           },
-          apps: this.config.apps,
+          apps: (tv.apps as any),
       };
 
       if (tv.channels) {

@@ -168,9 +168,8 @@ export class PhilipsTVAccessory {
         this.accessory.addService(this.tvSpeaker);
 
         if (this.config.apps && this.config.apps.length > 0) {
-            const applications = await this.tv.getApplications();
-            for (const application of applications.applications) {
-                if (this.config.apps.includes((application.name))) {
+            for (const application of (this.apps as any).applications) {
+                if (this.config.apps.includes(application.label)) {
                     this.setupApplication(application);
                 }
             }
