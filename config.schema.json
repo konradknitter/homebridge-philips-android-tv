@@ -62,6 +62,13 @@
                         "default": 6,
                         "required": false
                     },
+                    "wakeUntilAPIReadyCounter": {
+                        "title": "Wake until API ready counter",
+                        "description": "Number of tries to connect to TV before giving up at startup or turning on. Default 100. If -1 used - unlimited.",
+                        "type": "number",
+                        "default": 100,
+                        "required": false
+                    },
                     "alternativePlayPause": {
                         "title": "Alternative Play Pause.",
                         "description": "If enabled plugin will send store state of last send command and send Play command or Pause command alternating. If disabled, plugin sends PlayPause command. Required for compatibility on selected Philips TV.",

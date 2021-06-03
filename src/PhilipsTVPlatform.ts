@@ -1,6 +1,6 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 import { PLUGIN_NAME } from './settings';
-import { PhilipsTVAccessory, PhilipsTVConfig} from './PhilipsTVAccessory';
+import { PhilipsTVAccessory, PhilipsTVPluginConfig} from './PhilipsTVAccessory';
 import { validate } from './validate';
 
 export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
@@ -52,10 +52,12 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
   }
 
   async setupAccessory(accessory: PlatformAccessory, tv: Record<string, string>) {
-      const config: PhilipsTVConfig = {
+      const config: PhilipsTVPluginConfig = {
           name: tv.name,
           ip: tv.ip,
           mac: tv.mac,
+          apiVersion: Number(tv.apiVersion),
+          wakeUntilAPIReadyCounter: Number(tv.wakeUntilAPIReadyCounter),
           apiUser: tv.apiUser,
           apiPass: tv.apiPass,
           alternatingPlayPause: false,

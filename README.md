@@ -93,6 +93,7 @@ TV options:
 | apiUser                | Credentials required for communication with TV                                                                | false   | username       |
 | apiPassword            | Credentials required for communication with TV                                                                | false   | password       |
 | apiVersion             | Philips TV API Version used for communicaton with TV                                                          | 6       | 6              |
+|wakeUntilAPIReadyCounter| Modifies nubmer of tries before giving up connecting to TV. Set -1 for unlimited.                             | 100     | 200            |
 | alternativePlayPause   | Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false) | false   | true           |
 | dedicatedMuteSwitch    | If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes. | false   | true      |
 | dedicatedVolumeLightbulb   | If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes. | false   | true      |

@@ -7,7 +7,7 @@ import {
     Service,
 } from 'homebridge';
 
-import { PhilipsTVAccessory, PhilipsTVConfig} from './PhilipsTVAccessory';
+import { PhilipsTVAccessory, PhilipsTVPluginConfig} from './PhilipsTVAccessory';
 import { validate } from './validate';
 
 
@@ -81,10 +81,12 @@ export class PhilipsAndroidTvAccessory implements AccessoryPlugin {
     }
 
     async setupTV() {
-        const config: PhilipsTVConfig = {
+        const config: PhilipsTVPluginConfig = {
             name: this.config.name,
             ip: this.config.ip,
             mac: this.config.mac,
+            apiVersion: this.config.apiVersion,
+            wakeUntilAPIReadyCounter: this.config.wakeUntilAPIReadyCounter,
             apiUser: this.config.apiUser,
             apiPass: this.config.apiPass,
             alternatingPlayPause: false,

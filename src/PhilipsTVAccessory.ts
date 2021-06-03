@@ -9,13 +9,15 @@ import {
     Service,
 } from 'homebridge';
 
-import { Authentication, PhilipsTV } from '@konradknitter/philipsandroidtv';
+import { Authentication, PhilipsTV, PhilipsTVConfig } from '@konradknitter/philipsandroidtv';
 import PhilipsTVChannels from './PhilipsTVChannels';
 
-export interface PhilipsTVConfig {
+export interface PhilipsTVPluginConfig {
     name: string;
     ip: string;
     mac: string;
+    apiVersion: number;
+    wakeUntilAPIReadyCounter: number;
     apiUser: string;
     apiPass: string;
     alternatingPlayPause: boolean;
@@ -31,7 +33,7 @@ export interface PhilipsTVConfig {
 export class PhilipsTVAccessory {
     private readonly accessory: PlatformAccessory;
     private readonly api: API;
-    private readonly config: PhilipsTVConfig;
+    private readonly config: PhilipsTVPluginConfig;
     private readonly channels: PhilipsTVChannels;
     private readonly log: Logger;
     private apps = {};
@@ -59,7 +61,7 @@ export class PhilipsTVAccessory {
         },
     };
 
-    constructor(log: Logger, api: API, accessory: PlatformAccessory, config: PhilipsTVConfig) {
+    constructor(log: Logger, api: API, accessory: PlatformAccessory, config: PhilipsTVPluginConfig) {
         this.accessory = accessory;
         this.api = api;
         this.config = config;
@@ -72,7 +74,20 @@ export class PhilipsTVAccessory {
             sendImmediately: false,
         };
 
-        this.tv = new PhilipsTV(config.ip, config.mac, auth);
+        const tvConfig: PhilipsTVConfig = {
+            apiVersion: 6,
+            wakeUntilAPIReadyCounter: 100,
+        };
+
+        if (this.config.wakeUntilAPIReadyCounter) {
+            tvConfig.apiVersion = this.config.wakeUntilAPIReadyCounter;
+        }
+
+        if (this.config.wakeUntilAPIReadyCounter) {
+            tvConfig.wakeUntilAPIReadyCounter = this.config.wakeUntilAPIReadyCounter;
+        }
+
+        this.tv = new PhilipsTV(config.ip, config.mac, auth, tvConfig);
     }
 
     getSupportingServices() {
