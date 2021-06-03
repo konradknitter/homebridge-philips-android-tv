@@ -82,6 +82,7 @@ export class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
     async setupTV() {
         const config: PhilipsTVPluginConfig = {
+            debug: false,
             name: this.config.name,
             ip: this.config.ip,
             mac: this.config.mac,

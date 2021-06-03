@@ -53,6 +53,7 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
 
   async setupAccessory(accessory: PlatformAccessory, tv: Record<string, string>) {
       const config: PhilipsTVPluginConfig = {
+          debug: this.config.debug,
           name: tv.name,
           ip: tv.ip,
           mac: tv.mac,

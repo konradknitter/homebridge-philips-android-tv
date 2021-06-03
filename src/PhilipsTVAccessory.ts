@@ -13,6 +13,7 @@ import { Authentication, PhilipsTV, PhilipsTVConfig } from '@konradknitter/phili
 import PhilipsTVChannels from './PhilipsTVChannels';
 
 export interface PhilipsTVPluginConfig {
+    debug: boolean;
     name: string;
     ip: string;
     mac: string;
@@ -244,10 +245,12 @@ export class PhilipsTVAccessory {
             }
         } catch (err) {
             if (this.responsive) {
-                this.log.info('[' + this.config.name + '] Stop responding. Trying to wake over lan.');
+                this.log.info('[' + this.config.name + '] Stop responding.');
                 this.responsive = false;
             }
-            await this.tv.wakeOnLan();
+            if (this.config.debug) {
+                this.log.debug('checkStatus:' + err);
+            }
         }
     }
 
@@ -303,10 +306,22 @@ export class PhilipsTVAccessory {
 
     async setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
         try {
-            await this.tv.setPowerState(value as boolean);
-            callback(null, value);
+            callback(null);
+
+            if (value === 0) {
+                await this.tv.setPowerState(false);
+            } else {
+                await this.tv.turnOn();
+            }
+            this.accessory
+                .getService(this.api.hap.Service.Television)!
+                .getCharacteristic(this.api.hap.Characteristic.Active)
+                .updateValue(value ? 0 : 1);
+            
         } catch (err) {
-            callback(err);
+            if (this.config.debug) {
+                this.log.debug('setOn:' + err);
+            }
         }
     }
 
