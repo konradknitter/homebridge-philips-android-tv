@@ -438,14 +438,14 @@ export class PhilipsTVAccessory {
     }
 
     async launchActivity(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+        callback(null);
         if (this.configuredApps[Number(value)].type === 'app') {
             for (const application of (this.apps as any).applications) {
                 if (application.label === this.configuredApps[Number(value)].name) {
                     try {
                         await this.tv.launchApplication(application);
-                        callback(null, value);
                     } catch (err) {
-                        callback(err);
+                        this.log.debug('Launch Application failed:' + err);
                     }
                     return;
                 }
@@ -459,9 +459,8 @@ export class PhilipsTVAccessory {
                 channelRequest['channelList'] = currentChannel.channelList;
     
                 await this.tv.launchTVChannel(channelRequest as any);
-                callback(null, value);
             } catch (err) {
-                callback(err);
+                this.log.debug('Launch TV Channel failed:' + err);
             }
 
         }
