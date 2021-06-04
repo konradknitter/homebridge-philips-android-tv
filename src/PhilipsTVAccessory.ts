@@ -249,7 +249,7 @@ export class PhilipsTVAccessory {
                 this.responsive = false;
             }
             if (this.config.debug) {
-                this.log.debug('checkStatus:' + err);
+                this.log.debug('checkStatus: error:' + err);
             }
         }
     }
@@ -308,11 +308,12 @@ export class PhilipsTVAccessory {
         try {
             callback(null);
 
-            if (value === 0) {
-                await this.tv.setPowerState(false);
-            } else {
+            if (value as boolean) {
                 await this.tv.turnOn();
+            } else {
+                await this.tv.setPowerState(value as boolean);
             }
+
             this.accessory
                 .getService(this.api.hap.Service.Television)!
                 .getCharacteristic(this.api.hap.Characteristic.Active)

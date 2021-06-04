@@ -90,6 +90,28 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
       this.tvs.push(tvAccessory);
 
       this.accessories.push(accessory);
+
+
+      if (tv.dedicatedVolumeLightbulb) {
+          this.log.info('Configuration of dedicated Volume Lightbulb');
+          const volumeLightbulb = new this.api.hap.Service.Lightbulb(tv.name + ' Volume Bulb', tv.name + ' Volume Lightbulb');
+
+          volumeLightbulb.getCharacteristic(this.api.hap.Characteristic.Brightness)
+              .on('get', tvAccessory.getVolume.bind(this))
+              .on('set', tvAccessory.setVolume.bind(this));
+
+          this.accessories.push(volumeLightbulb as any);
+      }
+
+      if (tv.dedicatedMuteSwitch) {
+          this.log.info('Configuration of dedicated Mute Switch');
+          const muteSwitch = new this.api.hap.Service.Switch(tv.name + ' Mute Switch');
+          muteSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+              .on('get', tvAccessory.getMute.bind(this))
+              .on('set', tvAccessory.setMute.bind(this));
+          this.accessories.push(muteSwitch as any);
+      }
+
       return;
   }
 
