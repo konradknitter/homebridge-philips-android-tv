@@ -87,9 +87,7 @@ export class PhilipsTVAccessory {
         if (this.config.wakeUntilAPIReadyCounter) {
             tvConfig.wakeUntilAPIReadyCounter = this.config.wakeUntilAPIReadyCounter;
         }
-
-        console.log(tvConfig);
-
+        
         this.tv = new PhilipsTV(config.ip, config.mac, auth, tvConfig);
     }
 

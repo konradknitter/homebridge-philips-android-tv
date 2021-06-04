@@ -95,38 +95,49 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
           if (tv.dedicatedVolumeLightbulb) {
 
               const uuid = this.api.hap.uuid.generate(tv.name + '.volume.lighbulb');
-              const lightbulbAccessory = new this.api.platformAccessory(
-                  tv.name + '.volume.lighbulb', uuid, this.api.hap.Categories.LIGHTBULB);
-            
-              this.log.info('Configuration of dedicated Volume Lightbulb');
-              const volumeLightbulb = new this.api.hap.Service.Lightbulb(tv.name + ' Volume');
-  
-              volumeLightbulb.getCharacteristic(this.api.hap.Characteristic.Brightness)
-                  .on('get', tvAccessory.getVolume.bind(tvAccessory))
-                  .on('set', tvAccessory.setVolume.bind(tvAccessory));
+              const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+              if (existingAccessory) {
+                  this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+              } else {
+                  const lightbulbAccessory = new this.api.platformAccessory(
+                      tv.name + '.volume.lighbulb', uuid, this.api.hap.Categories.LIGHTBULB);
+                
+                  this.log.info('Configuration of dedicated Volume Lightbulb');
+                  const volumeLightbulb = new this.api.hap.Service.Lightbulb(tv.name + ' Volume');
+    
+                  volumeLightbulb.getCharacteristic(this.api.hap.Characteristic.Brightness)
+                      .on('get', tvAccessory.getVolume.bind(tvAccessory))
+                      .on('set', tvAccessory.setVolume.bind(tvAccessory));
 
-              lightbulbAccessory.addService(volumeLightbulb);
-  
-              this.accessories.push(lightbulbAccessory);
-              this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lightbulbAccessory]);
+                  lightbulbAccessory.addService(volumeLightbulb);
+    
+                  this.accessories.push(lightbulbAccessory);
+                  this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [lightbulbAccessory]);
+              }
           }
   
           if (tv.dedicatedMuteSwitch) {
               const uuid = this.api.hap.uuid.generate(tv.name + '.mute.switch');
-              const muteSwitchAccessory = new this.api.platformAccessory(
-                  tv.name + '.mute.switch', uuid, this.api.hap.Categories.SWITCH);
-              this.log.info('Configuration of dedicated Mute Switch');
 
-              const muteSwitch = new this.api.hap.Service.Switch(tv.name + ' Mute Switch');
+              const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+              if (existingAccessory) {
+                  this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+              } else {
+                  const muteSwitchAccessory = new this.api.platformAccessory(
+                      tv.name + '.mute.switch', uuid, this.api.hap.Categories.SWITCH);
+                  this.log.info('Configuration of dedicated Mute Switch');
 
-              muteSwitch.getCharacteristic(this.api.hap.Characteristic.On)
-                  .on('get', tvAccessory.getMute.bind(tvAccessory))
-                  .on('set', tvAccessory.setMute.bind(tvAccessory));
+                  const muteSwitch = new this.api.hap.Service.Switch(tv.name + ' Mute Switch');
 
-              muteSwitchAccessory.addService(muteSwitch);
-              this.accessories.push(muteSwitchAccessory);
+                  muteSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+                      .on('get', tvAccessory.getMute.bind(tvAccessory))
+                      .on('set', tvAccessory.setMute.bind(tvAccessory));
 
-              this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [muteSwitchAccessory]);
+                  muteSwitchAccessory.addService(muteSwitch);
+                  this.accessories.push(muteSwitchAccessory);
+
+                  this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [muteSwitchAccessory]);
+              }
           }
       } catch {
           this.log.error('Failure in setup. TV not responsive.');
