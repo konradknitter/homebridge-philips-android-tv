@@ -445,7 +445,7 @@ export class PhilipsTVAccessory {
 
     async launchActivity(value: CharacteristicValue, callback: CharacteristicSetCallback) {
         if (this.configuredApps[Number(value)].type === 'app') {
-            for (const application of (this.apps as any)) {
+            for (const application of (this.apps as any).applications) {
                 if (application.label === this.configuredApps[Number(value)].name) {
                     try {
                         await this.tv.launchApplication(application);
