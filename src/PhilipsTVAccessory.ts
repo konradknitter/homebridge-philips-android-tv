@@ -313,12 +313,6 @@ export class PhilipsTVAccessory {
             } else {
                 await this.tv.setPowerState(value as boolean);
             }
-
-            this.accessory
-                .getService(this.api.hap.Service.Television)!
-                .getCharacteristic(this.api.hap.Characteristic.Active)
-                .updateValue(value ? 0 : 1);
-            
         } catch (err) {
             if (this.config.debug) {
                 this.log.debug('setOn:' + err);
