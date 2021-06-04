@@ -168,7 +168,7 @@ export class PhilipsTVAccessory {
         this.accessory.addService(this.tvService);
         this.accessory.addService(this.tvSpeaker);
 
-        if (this.config.apps && this.config.apps.length > 0) {
+        if (this.config.apps && this.config.apps.length > 0 && this.apps && Object.keys(this.apps).length !== 0) {
             for (const application of (this.apps as any).applications) {
                 if (this.config.apps.includes(application.label)) {
                     this.setupApplication(application);
@@ -239,7 +239,7 @@ export class PhilipsTVAccessory {
 
             const tvChannel = await this.tv.getCurrentTVChannel();
 
-            if (tvChannel.channel.name !== this.currentChannel.channel.name) {
+            if (tvChannel.channel && tvChannel.channel.name !== this.currentChannel.channel.name) {
                 this.currentChannel = tvChannel;
                 this.log.info('[' + this.config.name + '] TV Channel has been changed to ' + tvChannel.channel.name + '.');
             }
@@ -307,7 +307,7 @@ export class PhilipsTVAccessory {
     async setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
         try {
             callback(null);
-
+            this.log.info('Turn on TV:' + value);
             if (value as boolean) {
                 await this.tv.turnOn();
             } else {

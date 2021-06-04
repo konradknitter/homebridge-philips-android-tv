@@ -107,26 +107,31 @@ export class PhilipsAndroidTvAccessory implements AccessoryPlugin {
 
         this.tv = new PhilipsTVAccessory(this.log, this.api, this.tvAccessory, config);
 
-        await this.tv.fetchTVData();
-        await this.tv.setupPlatformAccessory();
-  
-        this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
-        this.log.debug(this.name + ' setup finished');
-
-        if (this.config.dedicatedVolumeLightbulb) {
-            this.volumeLightbulb = new this.api.hap.Service.Lightbulb(this.name + ' Volume Bulb', this.name + ' Volume Lightbulb');
-
-            this.volumeLightbulb.getCharacteristic(this.api.hap.Characteristic.Brightness)
-                .on('get', this.tv.getVolume.bind(this))
-                .on('set', this.tv.setVolume.bind(this));
+        try {
+            await this.tv.fetchTVData();
+            await this.tv.setupPlatformAccessory();
+      
+            this.api.publishExternalAccessories(PLUGIN_NAME, [this.tvAccessory]);
+            this.log.debug(this.name + ' setup finished');
+    
+            if (this.config.dedicatedVolumeLightbulb) {
+                this.volumeLightbulb = new this.api.hap.Service.Lightbulb(this.name + ' Volume Bulb', this.name + ' Volume Lightbulb');
+    
+                this.volumeLightbulb.getCharacteristic(this.api.hap.Characteristic.Brightness)
+                    .on('get', this.tv.getVolume.bind(this))
+                    .on('set', this.tv.setVolume.bind(this));
+            }
+    
+            if (this.config.dedicatedMuteSwitch) {
+                this.muteSwitch = new this.api.hap.Service.Switch(this.name + ' Mute Switch');
+                this.muteSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+                    .on('get', this.tv.getMute.bind(this))
+                    .on('set', this.tv.setMute.bind(this));
+            }
+        } catch {
+            this.log.error('Failure in setup.');
         }
-
-        if (this.config.dedicatedMuteSwitch) {
-            this.muteSwitch = new this.api.hap.Service.Switch(this.name + ' Mute Switch');
-            this.muteSwitch.getCharacteristic(this.api.hap.Characteristic.On)
-                .on('get', this.tv.getMute.bind(this))
-                .on('set', this.tv.setMute.bind(this));
-        }
+       
     }
 
     identify(): void {
