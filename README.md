@@ -1,5 +1,7 @@
 # Homebridge Philips Android TV
 
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+
 This plug-in provides support for Homebridge Philips Android TVs.
 
 Protocols used are the same as an official [Philips TV Remote Application](https://apps.apple.com/be/app/philips-tv-remote-app/id1479155903).
