@@ -25,30 +25,33 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
   }
 
   validateConfiguration() : boolean {
-      for (const tv of this.config.tvs) {
-          this.log.debug('[' + tv.name + '] Validating configuration');
-
-          if (!tv.name) {
-              this.log.error('[' + tv.name + '] One of TVs do not have configured name');
-              return false;
+      if (Array.isArray(this.config.tvs)) {
+          for (const tv of this.config.tvs) {
+              this.log.debug('[' + tv.name + '] Validating configuration');
+  
+              if (!tv.name) {
+                  this.log.error('[' + tv.name + '] One of TVs do not have configured name');
+                  return false;
+              }
+  
+              if (!tv.ip || !validate.ip.test(tv.ip)) {
+                  this.log.error('[' + tv.name + '] IP Address is not set or not proper IP address.');
+                  return false;
+              }
+  
+              if (tv.mac && !validate.mac.test(tv.mac)) {
+                  this.log.error('[' + tv.name + '] MAC Address is not set or not proper MAC address.');
+                  return false;
+              }
+  
+              if (!tv.apiUser || !tv.apiPass) {
+                  this.log.error('[' + tv.name + '] API Credentials not set. Pair TV first.');
+                  return false;
+              }
           }
-
-          if (!tv.ip || !validate.ip.test(tv.ip)) {
-              this.log.error('[' + tv.name + '] IP Address is not set or not proper IP address.');
-              return false;
-          }
-
-          if (tv.mac && !validate.mac.test(tv.mac)) {
-              this.log.error('[' + tv.name + '] MAC Address is not set or not proper MAC address.');
-              return false;
-          }
-
-          if (!tv.apiUser || !tv.apiPass) {
-              this.log.error('[' + tv.name + '] API Credentials not set. Pair TV first.');
-              return false;
-          }
+          return true;
       }
-      return true;
+      return false;
   }
 
   async setupAccessory(accessory: PlatformAccessory, tv: Record<string, string>) {
@@ -149,11 +152,13 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
 
   async configureAccessory(accessory: PlatformAccessory) {
       this.log.info('Loading accessory from cache:', accessory.displayName);
-      for (const tv of this.config.tvs) {
-          if (tv.name === accessory.displayName) {
-              await this.setupAccessory(accessory, tv);
-          }
-      } 
+      if (Array.isArray(this.config.tvs)) {
+          for (const tv of this.config.tvs) {
+              if (tv.name === accessory.displayName) {
+                  await this.setupAccessory(accessory, tv);
+              }
+          } 
+      }
   }
 
   async discoverDevices() {
