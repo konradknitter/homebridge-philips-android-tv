@@ -213,13 +213,13 @@ export class PhilipsTVAccessory {
                 if (!this.on) {
                     this.log.info('[' + this.config.name + '] TV has been turn on.');
                     this.on = true;
-                    this.tvService.updateCharacteristic(this.api.hap.Characteristic.Active, this.on);
+                    this.tvService!.updateCharacteristic(this.api.hap.Characteristic.Active, this.on);
                 }
             } else {
                 if (this.on) {
                     this.log.info('[' + this.config.name + '] TV has been turned off.');
                     this.on = false;
-                    this.tvService.updateCharacteristic(this.api.hap.Characteristic.Active, this.on);
+                    this.tvService!.updateCharacteristic(this.api.hap.Characteristic.Active, this.on);
                 }
             }
             
@@ -231,8 +231,8 @@ export class PhilipsTVAccessory {
                 if (volume > 0) {
                     this.lastPositiveVolume = this.volume;
                 }
-                this.tvSpeaker.updateCharacteristic(this.api.hap.Characteristic.Volume, this.volume);
-                this.tvSpeaker.updateCharacteristic(this.api.hap.Characteristic.Mute, this.volume === 0);
+                this.tvSpeaker!.updateCharacteristic(this.api.hap.Characteristic.Volume, this.volume);
+                this.tvSpeaker!.updateCharacteristic(this.api.hap.Characteristic.Mute, this.volume === 0);
             }
 
             const app = await this.tv.getCurrentActivity();
