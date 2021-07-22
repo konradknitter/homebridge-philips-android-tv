@@ -37,6 +37,13 @@
                         "format": "ipv4",
                         "required": true
                     },
+                    "broadcastIP": {
+                        "title": "TV Broadcast IP",
+                        "description": "Broadcast IP used to WoL TV",
+                        "type": "string",
+                        "format": "ipv4",
+                        "required": false
+                    },
                     "macAddress": {
                         "title": "TV's MAC Address",
                         "description": "The MAC Address of your TV. Used to wake TV over WiFi. WoWiFi have to be enabled on TV in network settings.",

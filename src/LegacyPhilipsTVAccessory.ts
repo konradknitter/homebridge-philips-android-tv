@@ -91,6 +91,7 @@ export class PhilipsAndroidTvAccessory implements AccessoryPlugin {
             apiUser: this.config.apiUser,
             apiPass: this.config.apiPass,
             alternatingPlayPause: false,
+            broadcastIP: this.config.broadcastIP,
             channels: {
                 useFavorites: this.config.channels.useFavorites,
                 includeAll: this.config.channels.includeAll,

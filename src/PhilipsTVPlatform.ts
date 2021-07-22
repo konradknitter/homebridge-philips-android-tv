@@ -65,6 +65,7 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
           apiUser: tv.apiUser,
           apiPass: tv.apiPass,
           alternatingPlayPause: false,
+          broadcastIP: tv.broadcastIP,
           channels: {
               useFavorites: false,
               includeAll: false,

@@ -22,6 +22,7 @@ export interface PhilipsTVPluginConfig {
     apiUser: string;
     apiPass: string;
     alternatingPlayPause: boolean;
+    broadcastIP: string;
     channels: {
         useFavorites: boolean;
         favoriteListId: number;
@@ -78,6 +79,7 @@ export class PhilipsTVAccessory {
         const tvConfig: PhilipsTVConfig = {
             apiVersion: 6,
             wakeUntilAPIReadyCounter: 100,
+            broadcastIP: '255.255.255.255',
         };
 
         if (this.config.apiVersion) {
@@ -86,6 +88,10 @@ export class PhilipsTVAccessory {
 
         if (this.config.wakeUntilAPIReadyCounter) {
             tvConfig.wakeUntilAPIReadyCounter = this.config.wakeUntilAPIReadyCounter;
+        }
+
+        if (this.config.broadcastIP) {
+            tvConfig.broadcastIP = this.config.broadcastIP;
         }
         
         this.tv = new PhilipsTV(config.ip, config.mac, auth, tvConfig);
