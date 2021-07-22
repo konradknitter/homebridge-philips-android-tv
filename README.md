@@ -1,5 +1,7 @@
 # Homebridge Philips Android TV
 
+[![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+
 This plug-in provides support for Homebridge Philips Android TVs.
 
 Protocols used are the same as an official [Philips TV Remote Application](https://apps.apple.com/be/app/philips-tv-remote-app/id1479155903).
@@ -89,13 +91,13 @@ TV options:
 | Option                 | Description                                                                                                   | Default |  Example       |
 |------------------------|---------------------------------------------------------------------------------------------------------------|---------|----------------|
 | ip                     | IP Address of TV                                                                                              | false   | 192.168.0.1    |
-| mac                    | MAC Address of TV. Used for Wake over LAN feature. Wake over LAN feautre needs to be enabled in TV settings   | false   | AA:BB:CC:DD:EE |
+| mac                    | MAC Address of TV. Used for Wake over LAN feature. Wake over LAN feature needs to be enabled in TV settings. Pay attention to the correct syntax, only capital letters are allowed   | false   | AA:BB:CC:DD:EE |
 | apiUser                | Credentials required for communication with TV                                                                | false   | username       |
 | apiPassword            | Credentials required for communication with TV                                                                | false   | password       |
 | apiVersion             | Philips TV API Version used for communicaton with TV                                                          | 6       | 6              |
-|wakeUntilAPIReadyCounter| Modifies nubmer of tries before giving up connecting to TV. Set -1 for unlimited.                             | 100     | 200            |
+|wakeUntilAPIReadyCounter| Modifies nubmer of tries before giving up connecting to TV. Set -1 for unlimited                             | 100     | 200            |
 | alternativePlayPause   | Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false) | false   | true           |
-| dedicatedMuteSwitch    | If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes. | false   | true      |
+| dedicatedMuteSwitch    | If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes | false   | true      |
 | dedicatedVolumeLightbulb   | If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes. | false   | true      |
 | apps                   | Configuration of Application Input Sources. Array of Strings.                                                 | []      |[Netflix, YouTube]|
 | channels               | Configuration of TV Channels Input Sources. Array of Objects.                                                 | []      | More below     |
@@ -147,11 +149,11 @@ Legacy configuration will be supported until version 2.x, without new features.
 | Option                 | Description                                                                                                   | Default |  Example       |
 |------------------------|---------------------------------------------------------------------------------------------------------------|---------|----------------|
 | ip                     | IP Address of TV                                                                                              | false   | 192.168.0.1    |
-| mac                    | MAC Address of TV. Used for Wake over LAN feature. Wake over LAN feautre needs to be enabled in TV settings   | false   | AA:BB:CC:DD:EE |
+| mac                    | MAC Address of TV. Used for Wake over LAN feature. Wake over LAN feature needs to be enabled in TV settings. Pay attention to the correct syntax, only capital letters are allowed   | false   | AA:BB:CC:DD:EE |
 | apiUser                | Credentials required for communication with TV                                                                | false   | username       |
 | apiPassword            | Credentials required for communication with TV                                                                | false   | password       |
 | alternativePlayPause   | Sends Play or Pause alternating, based on internal state, instead of PlayPause to TV when not defined (false) | false   | true           |
-| dedicatedMuteSwitch    | If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes. | false   | true      |
+| dedicatedMuteSwitch    | If enabled plugin register additional Switch Service that will mute, or unmute TV. Might be useful when setting scenes | false   | true      |
 | dedicatedVolumeLightbulb   | If enabled plugin register additional Lightbulb Service that will control Volume of TV. Might be useful when setting scenes. | false   | true      |
 
 [comment]: <> (Maybe adding more options in table?)
