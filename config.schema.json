@@ -44,6 +44,20 @@
                         "format": "ipv4",
                         "required": false
                     },
+                    "wakeOnLanRequests": {
+                        "title": "Number of Wake on Lan Requests",
+                        "description": "How many Wake on Lan requests should be send by plugin every interval. By default: 1",
+                        "type": "number",
+                        "default": 1,
+                        "required": false
+                    },
+                    "wakeOnLanTimeout": {
+                        "title": "Wake on Lan Timeout",
+                        "description": "How much milliseconds should plugin wait between Wake on Lan requests. By default: 1000 ",
+                        "type": "number",
+                        "default": 1000,
+                        "required": false
+                    },
                     "macAddress": {
                         "title": "TV's MAC Address",
                         "description": "The MAC Address of your TV. Used to wake TV over WiFi. WoWiFi have to be enabled on TV in network settings.",
