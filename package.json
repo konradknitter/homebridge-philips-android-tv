@@ -1,7 +1,7 @@
 {
     "displayName": "Philips Android TV",
     "name": "homebridge-philips-android-tv",
-    "version": "0.10.11",
+    "version": "0.10.12",
     "description": "Plugin for Philips Android TV",
     "license": "Apache-2.0",
     "repository": {
@@ -27,7 +27,7 @@
     ],
     "dependencies": {
         "@homebridge/plugin-ui-utils": "0.0.19",
-        "@konradknitter/philipsandroidtv": "1.1.0",
+        "@konradknitter/philipsandroidtv": "1.2.0",
         "debug": "~2.6.9",
         "morgan": "~1.9.1",
         "request": "^2.69.0",

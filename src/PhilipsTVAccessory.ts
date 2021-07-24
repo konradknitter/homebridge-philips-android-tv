@@ -30,6 +30,8 @@ export interface PhilipsTVPluginConfig {
         channels: Array<string>;
     };
     apps: Array<string>;
+    wakeOnLanRequests: number;
+    wakeOnLanTimeout: number;
 }
 
 export class PhilipsTVAccessory {
@@ -80,6 +82,8 @@ export class PhilipsTVAccessory {
             apiVersion: 6,
             wakeUntilAPIReadyCounter: 100,
             broadcastIP: '255.255.255.255',
+            wakeOnLanRequests: 1,
+            wakeOnLanTimeout: 1000,
         };
 
         if (this.config.apiVersion) {

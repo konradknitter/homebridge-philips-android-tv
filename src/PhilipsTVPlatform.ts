@@ -73,6 +73,8 @@ export class PhilipsAndroidTVPlatform implements DynamicPlatformPlugin {
               channels: [],
           },
           apps: (tv.apps as any),
+          wakeOnLanTimeout: this.config.wakeOnLanTimeout,
+          wakeOnLanRequests: this.config.wakeOnLanRequests,
       };
 
       if (tv.channels) {

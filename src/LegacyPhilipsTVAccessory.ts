@@ -99,6 +99,8 @@ export class PhilipsAndroidTvAccessory implements AccessoryPlugin {
                 channels: this.config.channels.channels,
             },
             apps: this.config.apps,
+            wakeOnLanTimeout: this.config.wakeOnLanTimeout,
+            wakeOnLanRequests: this.config.wakeOnLanRequests,
         };
 
         const uuid = this.api.hap.uuid.generate(PLUGIN_NAME + this.name);
